@@ -15,12 +15,15 @@ use libp2p::swarm::protocols_handler::{ProtocolsHandler, NodeHandlerWrapper, Sub
 use libp2p::swarm::NetworkBehaviour;
 use libp2p::mdns::Mdns;
 use libp2p::mplex::Substream;
+use tokio::io::AsyncWrite;
 
 fn main() {
     env_logger::init();
 
     let local_key = Keypair::generate_ed25519();
     let local_public_key = local_key.public();
+
+    println!("ID: {:?}", PeerId::from_public_key(local_public_key));
 
     let transport = TcpConfig::new();
 
@@ -31,11 +34,25 @@ fn main() {
 
     // Kick it off
     tokio::run(futures::future::poll_fn(move || -> Result<_, ()> {
+        let text = "some test data";
         loop {
             //match transport.clone().dial(node.clone()).unwrap().poll().unwrap() {
             match conn.poll().unwrap() {
-                Async::Ready(x) => println!("{:?}", x),
-                Async::NotReady => break,
+                Async::Ready(mut stream) => {
+                    match stream.poll_write(text.as_bytes()).unwrap() {
+                        Async::Ready(x) => {
+                            println!("{:?}", x);
+                        },
+                        Async::NotReady => {
+                            println!("Leaving stream");
+                            break;
+                        }
+                    }
+                },
+                Async::NotReady => {
+                    println!("Leaving connection");
+                    break;
+                },
             }
             break;
         }
