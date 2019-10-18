@@ -45,7 +45,7 @@ fn main() {
             match event {
                 MdnsEvent::Discovered(addrs) => {
                     for (peer_id, multi_addr) in addrs {
-                        debug!("Discovered {}/{}", &multi_addr, peer_id);
+                        info!("Discovered {}/{}", &multi_addr, peer_id);
                         self.kademlia.add_address(&peer_id, multi_addr);
                     }
 
@@ -59,8 +59,8 @@ fn main() {
         // Called when `floodsub` produces an event.
         fn inject_event(&mut self, event: KademliaEvent) {
             match event {
-                KademliaEvent::RoutingUpdated{peer, addresses, old_peer} => {
-                    info!("Updated DHT with {}", peer);
+                KademliaEvent::RoutingUpdated{peer, addresses, ..} => {
+                    info!("Updated DHT with {} - {:?}", peer, addresses);
                 },
                 _ => {},
             }
