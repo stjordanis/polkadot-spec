@@ -16,6 +16,8 @@ use libp2p::swarm::NetworkBehaviour;
 use libp2p::mdns::Mdns;
 use libp2p::mplex::Substream;
 use tokio::io::AsyncWrite;
+use libp2p::kad::Kademlia;
+use libp2p::mdns::service::{MdnsPacket, MdnsService};
 
 fn main() {
     env_logger::init();
@@ -32,11 +34,44 @@ fn main() {
 
     let mut conn = transport.dial(node).unwrap();
 
+    let mut service = MdnsService::new().expect("Error while creating mDNS service");
+
     // Kick it off
     tokio::run(futures::future::poll_fn(move || -> Result<_, ()> {
         let text = "some test data";
         loop {
-            //match transport.clone().dial(node.clone()).unwrap().poll().unwrap() {
+            let packet = match service.poll() {
+                Async::Ready(packet) => packet,
+                Async::NotReady => return Ok(Async::NotReady),
+            };
+
+            match packet {
+                MdnsPacket::Query(query) => {
+                    // We detected a libp2p mDNS query on the network. In a real application, you
+                    // probably want to answer this query by doing `query.respond(...)`.
+                    println!("Detected query from {:?}", query.remote_addr());
+                }
+                MdnsPacket::Response(response) => {
+                    // We detected a libp2p mDNS response on the network. Responses are for
+                    // everyone and not just for the requester, which makes it possible to
+                    // passively listen.
+                    for peer in response.discovered_peers() {
+                        println!("Discovered peer {:?}", peer.id());
+                        // These are the self-reported addresses of the peer we just discovered.
+                        for addr in peer.addresses() {
+                            println!(" Address = {:?}", addr);
+                        }
+                    }
+                }
+                MdnsPacket::ServiceDiscovery(query) => {
+                    // The last possibility is a service detection query from DNS-SD.
+                    // Just like `Query`, in a real application you probably want to call
+                    // `query.respond`.
+                    println!("Detected service query from {:?}", query.remote_addr());
+                }
+            }
+
+            /*
             match conn.poll().unwrap() {
                 Async::Ready(mut stream) => {
                     match stream.poll_write(text.as_bytes()).unwrap() {
@@ -55,6 +90,7 @@ fn main() {
                 },
             }
             break;
+            */
         }
 
         Ok(Async::NotReady)
