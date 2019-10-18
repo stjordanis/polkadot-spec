@@ -1,3 +1,8 @@
+#[macro_use]
+extern crate libp2p;
+#[macro_use]
+extern crate log;
+
 use std::env;
 use futures::{prelude::*, future};
 use libp2p::{PeerId, Multiaddr, Transport};
@@ -12,11 +17,11 @@ use libp2p::yamux;
 use libp2p::Swarm;
 use libp2p::secio::SecioConfig;
 use libp2p::swarm::protocols_handler::{ProtocolsHandler, NodeHandlerWrapper, SubstreamProtocol, DummyProtocolsHandler};
-use libp2p::swarm::NetworkBehaviour;
-use libp2p::mdns::Mdns;
+use libp2p::swarm::{NetworkBehaviour, NetworkBehaviourEventProcess};
+use libp2p::mdns::{Mdns, MdnsEvent};
 use libp2p::mplex::Substream;
-use tokio::io::AsyncWrite;
-use libp2p::kad::Kademlia;
+use tokio::io::{AsyncRead, AsyncWrite};
+use libp2p::kad::{Kademlia, KademliaEvent};
 use libp2p::mdns::service::{MdnsPacket, MdnsService};
 use libp2p::kad::record::store::MemoryStore;
 
@@ -29,32 +34,80 @@ fn main() {
 
     println!("ID: {:?}", peer_id);
 
+    #[derive(NetworkBehaviour)]
+    struct MyBehaviour<TSubstream: AsyncRead + AsyncWrite> {
+        kademlia: Kademlia<TSubstream, MemoryStore>,
+        mdns: Mdns<TSubstream>,
+    }
+
+    impl<TSubstream: AsyncRead + AsyncWrite> NetworkBehaviourEventProcess<MdnsEvent> for MyBehaviour<TSubstream> {
+        fn inject_event(&mut self, event: MdnsEvent) {
+            match event {
+                MdnsEvent::Discovered(addrs) => {
+                    for (peer_id, multi_addr) in addrs {
+                        debug!("Discovered {}/{}", &multi_addr, peer_id);
+                        self.kademlia.add_address(&peer_id, multi_addr);
+                    }
+
+                },
+                _ => {},
+            }
+        }
+    }
+
+    impl<TSubstream: AsyncRead + AsyncWrite> NetworkBehaviourEventProcess<KademliaEvent> for MyBehaviour<TSubstream> {
+        // Called when `floodsub` produces an event.
+        fn inject_event(&mut self, event: KademliaEvent) {
+            match event {
+                KademliaEvent::RoutingUpdated{peer, addresses, old_peer} => {
+                    info!("Updated DHT with {}", peer);
+                },
+                _ => {},
+            }
+        }
+    }
+
     // remote node
     let remote_peer_id: PeerId = "Qmd6oSuC4tEXHxewrZNdwpVhn8b4NwxpboBCH4kHkH1EYb".parse().unwrap();
     let remote_addr: Multiaddr = "/ip4/127.0.0.1/tcp/30333".parse().unwrap();
-
-    let store = MemoryStore::new(peer_id.clone());
-    let mut behaviour = Kademlia::new(peer_id.clone(), store);
-    behaviour.add_address(&remote_peer_id, remote_addr);
 
     let transport = TcpConfig::new()
         .upgrade(Version::V1)
         .authenticate(SecioConfig::new(local_key))
         .multiplex(MplexConfig::new());
 
-    let mut swarm = Swarm::new(transport.clone(), behaviour, peer_id);
+    let store = MemoryStore::new(peer_id.clone());
+    let behaviour = Kademlia::new(peer_id.clone(), store);
 
+    let mdns = Mdns::new().unwrap();
+
+    let behaviour = MyBehaviour {
+        kademlia: behaviour,
+        mdns: mdns,
+    };
+
+    let mut swarm = Swarm::new(transport.clone(), behaviour, peer_id);
+    let _ = Swarm::dial_addr(&mut swarm, remote_addr.clone()).unwrap();
+
+    Swarm::listen_on(&mut swarm, "/ip4/0.0.0.0/tcp/0".parse().unwrap()).unwrap();
+
+    let mut listening = false;
     tokio::run(futures::future::poll_fn(move || -> Result<_, ()> {
         loop {
             match swarm.poll().unwrap() {
                 Async::Ready(x) => {
-                    println!("{:?}", x);
+                    println!("READY: {:?}", x);
                 },
                 Async::NotReady => {
-
+                    if !listening {
+                        if let Some(a) = Swarm::listeners(&swarm).next() {
+                            println!("Listening on {:?}", a);
+                            listening = true;
+                        }
+                    }
+                    break
                 }
             }
-
         }
 
         Ok(Async::NotReady)
