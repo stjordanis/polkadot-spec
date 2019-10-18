@@ -1,3 +1,8 @@
+#[macro_use]
+extern crate libp2p;
+#[macro_use]
+extern crate log;
+
 use std::env;
 use futures::{prelude::*, future};
 use libp2p::{PeerId, Multiaddr, Transport};
@@ -12,31 +17,104 @@ use libp2p::yamux;
 use libp2p::Swarm;
 use libp2p::secio::SecioConfig;
 use libp2p::swarm::protocols_handler::{ProtocolsHandler, NodeHandlerWrapper, SubstreamProtocol, DummyProtocolsHandler};
-use libp2p::swarm::NetworkBehaviour;
-use libp2p::mdns::Mdns;
+use libp2p::swarm::{NetworkBehaviour, NetworkBehaviourEventProcess};
+use libp2p::mdns::{Mdns, MdnsEvent};
 use libp2p::mplex::Substream;
-use tokio::io::AsyncWrite;
-use libp2p::kad::Kademlia;
+use tokio::io::{AsyncRead, AsyncWrite};
+use libp2p::kad::{Kademlia, KademliaEvent};
 use libp2p::mdns::service::{MdnsPacket, MdnsService};
+use libp2p::kad::record::store::MemoryStore;
 
 fn main() {
     env_logger::init();
 
     let local_key = Keypair::generate_ed25519();
     let local_public_key = local_key.public();
+    let peer_id = PeerId::from_public_key(local_public_key);
 
-    println!("ID: {:?}", PeerId::from_public_key(local_public_key));
+    println!("ID: {:?}", peer_id);
 
-    let transport = TcpConfig::new();
+    #[derive(NetworkBehaviour)]
+    struct MyBehaviour<TSubstream: AsyncRead + AsyncWrite> {
+        kademlia: Kademlia<TSubstream, MemoryStore>,
+        mdns: Mdns<TSubstream>,
+    }
 
-    //let node: Multiaddr = "/ip4/188.62.22.15/tcp/30333/p2p/Qmd6oSuC4tEXHxewrZNdwpVhn8b4NwxpboBCH4kHkH1EYb".parse().unwrap();
-    let node: Multiaddr = "/ip4/127.0.0.1/tcp/30333".parse().unwrap();
+    impl<TSubstream: AsyncRead + AsyncWrite> NetworkBehaviourEventProcess<MdnsEvent> for MyBehaviour<TSubstream> {
+        fn inject_event(&mut self, event: MdnsEvent) {
+            match event {
+                MdnsEvent::Discovered(addrs) => {
+                    for (peer_id, multi_addr) in addrs {
+                        info!("Discovered {}/{}", &multi_addr, peer_id);
+                        self.kademlia.add_address(&peer_id, multi_addr);
+                    }
 
-    let mut conn = transport.dial(node).unwrap();
+                },
+                _ => {},
+            }
+        }
+    }
 
-    let mut service = MdnsService::new().expect("Error while creating mDNS service");
+    impl<TSubstream: AsyncRead + AsyncWrite> NetworkBehaviourEventProcess<KademliaEvent> for MyBehaviour<TSubstream> {
+        // Called when `floodsub` produces an event.
+        fn inject_event(&mut self, event: KademliaEvent) {
+            match event {
+                KademliaEvent::RoutingUpdated{peer, addresses, ..} => {
+                    info!("Updated DHT with {} - {:?}", peer, addresses);
+                },
+                _ => {},
+            }
+        }
+    }
+
+    // remote node
+    let remote_peer_id: PeerId = "Qmd6oSuC4tEXHxewrZNdwpVhn8b4NwxpboBCH4kHkH1EYb".parse().unwrap();
+    let remote_addr: Multiaddr = "/ip4/127.0.0.1/tcp/30333".parse().unwrap();
+
+    let transport = TcpConfig::new()
+        .upgrade(Version::V1)
+        .authenticate(SecioConfig::new(local_key))
+        .multiplex(MplexConfig::new());
+
+    let store = MemoryStore::new(peer_id.clone());
+    let behaviour = Kademlia::new(peer_id.clone(), store);
+
+    let mdns = Mdns::new().unwrap();
+
+    let behaviour = MyBehaviour {
+        kademlia: behaviour,
+        mdns: mdns,
+    };
+
+    let mut swarm = Swarm::new(transport.clone(), behaviour, peer_id);
+    let _ = Swarm::dial_addr(&mut swarm, remote_addr.clone()).unwrap();
+
+    Swarm::listen_on(&mut swarm, "/ip4/0.0.0.0/tcp/0".parse().unwrap()).unwrap();
+
+    let mut listening = false;
+    tokio::run(futures::future::poll_fn(move || -> Result<_, ()> {
+        loop {
+            match swarm.poll().unwrap() {
+                Async::Ready(x) => {
+                    println!("READY: {:?}", x);
+                },
+                Async::NotReady => {
+                    if !listening {
+                        if let Some(a) = Swarm::listeners(&swarm).next() {
+                            println!("Listening on {:?}", a);
+                            listening = true;
+                        }
+                    }
+                    break
+                }
+            }
+        }
+
+        Ok(Async::NotReady)
+    }));
 
     // Kick it off
+    /*
     tokio::run(futures::future::poll_fn(move || -> Result<_, ()> {
         let text = "some test data";
         loop {
@@ -95,4 +173,5 @@ fn main() {
 
         Ok(Async::NotReady)
     }));
+    */
 }
