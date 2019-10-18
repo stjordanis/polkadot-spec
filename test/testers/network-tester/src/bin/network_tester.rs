@@ -18,25 +18,50 @@ use libp2p::mplex::Substream;
 use tokio::io::AsyncWrite;
 use libp2p::kad::Kademlia;
 use libp2p::mdns::service::{MdnsPacket, MdnsService};
+use libp2p::kad::record::store::MemoryStore;
 
 fn main() {
     env_logger::init();
 
     let local_key = Keypair::generate_ed25519();
     let local_public_key = local_key.public();
+    let peer_id = PeerId::from_public_key(local_public_key);
 
-    println!("ID: {:?}", PeerId::from_public_key(local_public_key));
+    println!("ID: {:?}", peer_id);
 
-    let transport = TcpConfig::new();
+    // remote node
+    let remote_peer_id: PeerId = "Qmd6oSuC4tEXHxewrZNdwpVhn8b4NwxpboBCH4kHkH1EYb".parse().unwrap();
+    let remote_addr: Multiaddr = "/ip4/127.0.0.1/tcp/30333".parse().unwrap();
 
-    //let node: Multiaddr = "/ip4/188.62.22.15/tcp/30333/p2p/Qmd6oSuC4tEXHxewrZNdwpVhn8b4NwxpboBCH4kHkH1EYb".parse().unwrap();
-    let node: Multiaddr = "/ip4/127.0.0.1/tcp/30333".parse().unwrap();
+    let store = MemoryStore::new(peer_id.clone());
+    let mut behaviour = Kademlia::new(peer_id.clone(), store);
+    behaviour.add_address(&remote_peer_id, remote_addr);
 
-    let mut conn = transport.dial(node).unwrap();
+    let transport = TcpConfig::new()
+        .upgrade(Version::V1)
+        .authenticate(SecioConfig::new(local_key))
+        .multiplex(MplexConfig::new());
 
-    let mut service = MdnsService::new().expect("Error while creating mDNS service");
+    let mut swarm = Swarm::new(transport.clone(), behaviour, peer_id);
+
+    tokio::run(futures::future::poll_fn(move || -> Result<_, ()> {
+        loop {
+            match swarm.poll().unwrap() {
+                Async::Ready(x) => {
+                    println!("{:?}", x);
+                },
+                Async::NotReady => {
+
+                }
+            }
+
+        }
+
+        Ok(Async::NotReady)
+    }));
 
     // Kick it off
+    /*
     tokio::run(futures::future::poll_fn(move || -> Result<_, ()> {
         let text = "some test data";
         loop {
@@ -95,4 +120,5 @@ fn main() {
 
         Ok(Async::NotReady)
     }));
+    */
 }
