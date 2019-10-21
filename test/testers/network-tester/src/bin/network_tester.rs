@@ -25,6 +25,7 @@ use libp2p::kad::{Kademlia, KademliaEvent};
 use libp2p::mdns::service::{MdnsPacket, MdnsService};
 use libp2p::kad::record::store::MemoryStore;
 use libp2p::identify::{Identify, IdentifyEvent};
+use libp2p::kad::protocol::KadRequestMsg;
 
 fn main() {
     env_logger::init();
@@ -44,7 +45,6 @@ fn main() {
                         debug!("Discovered {}/{}", &multi_addr, peer_id);
                         self.kademlia.add_address(&peer_id, multi_addr);
                     }
-
                 },
                 e @ _ => {
                     warn!("Received unhandled mDNS event: {:?}", e);
@@ -60,6 +60,11 @@ fn main() {
                     info!("Updated DHT with address of {}:", peer);
                     for address in addresses.iter() {
                         info!("> {}", address);
+                    }
+                },
+                KademliaEvent::BootstrapResult(bootstrap_result) => {
+                    if let Ok(result) = bootstrap_result {
+                        info!("RESULT: {:?}", result);
                     }
                 },
                 e @ _ => {
@@ -79,17 +84,17 @@ fn main() {
 
     let local_key = Keypair::generate_ed25519();
     let local_public_key = local_key.public();
-    let peer_id = PeerId::from_public_key(local_public_key.clone());
+    let local_peer_id = PeerId::from_public_key(local_public_key.clone());
 
-    info!("Local node ID: {:?}", peer_id);
+    info!("Local node ID: {:?}", local_peer_id);
 
     let transport = TcpConfig::new()
         .upgrade(Version::V1)
         .authenticate(SecioConfig::new(local_key))
         .multiplex(MplexConfig::new());
 
-    let store = MemoryStore::new(peer_id.clone());
-    let behaviour = Kademlia::new(peer_id.clone(), store);
+    let store = MemoryStore::new(local_peer_id.clone());
+    let behaviour = Kademlia::new(local_peer_id.clone(), store);
 
     let mdns = Mdns::new().unwrap();
 
@@ -104,11 +109,14 @@ fn main() {
     let remote_addr: Multiaddr = "/ip4/127.0.0.1/tcp/30333".parse().unwrap();
 
     // Create swarm, listen on local port
-    let mut swarm = Swarm::new(transport.clone(), behaviour, peer_id);
+    let mut swarm = Swarm::new(transport.clone(), behaviour, local_peer_id.clone());
     let _ = Swarm::dial_addr(&mut swarm, remote_addr.clone()).unwrap();
     Swarm::listen_on(&mut swarm, "/ip4/0.0.0.0/tcp/0".parse().unwrap()).unwrap();
 
+    let kad_ping = KadRequestMsg::Ping;
+
     // Run worker
+    let mut node_known = false;
     let mut listening = false;
     tokio::run(futures::future::poll_fn(move || -> Result<_, ()> {
         loop {
@@ -127,6 +135,21 @@ fn main() {
                 }
             }
         }
+
+        if node_known {
+            swarm.kademlia.bootstrap();
+        } else {
+            if swarm.kademlia.kbuckets_entries().count() > 0 {
+                node_known = true;
+            }
+        }
+
+        /*
+        info!("-------------------------");
+        for entry in swarm.kademlia.kbuckets_entries() {
+            info!("ENTRY: {:?}", entry);
+        }
+        */
 
         Ok(Async::NotReady)
     }));
