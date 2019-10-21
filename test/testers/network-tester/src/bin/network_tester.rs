@@ -81,7 +81,7 @@ fn main() {
     let local_public_key = local_key.public();
     let peer_id = PeerId::from_public_key(local_public_key.clone());
 
-    println!("ID: {:?}", peer_id);
+    info!("Local node ID: {:?}", peer_id);
 
     let transport = TcpConfig::new()
         .upgrade(Version::V1)
@@ -114,12 +114,12 @@ fn main() {
         loop {
             match swarm.poll().unwrap() {
                 Async::Ready(x) => {
-                    println!("READY: {:?}", x);
+                    info!("Swarm poll ready: {:?}", x);
                 },
                 Async::NotReady => {
                     if !listening {
                         if let Some(a) = Swarm::listeners(&swarm).next() {
-                            println!("Listening on {:?}", a);
+                            info!("Listening locally on {:?}", a);
                             listening = true;
                         }
                     }
