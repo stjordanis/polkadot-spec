@@ -64,7 +64,7 @@ fn main() {
                 },
                 KademliaEvent::BootstrapResult(bootstrap_result) => {
                     if let Ok(result) = bootstrap_result {
-                        info!("RESULT: {:?}", result);
+                        debug!("Bootstrap result: {:?}", result);
                     }
                 },
                 e @ _ => {
@@ -121,9 +121,7 @@ fn main() {
     tokio::run(futures::future::poll_fn(move || -> Result<_, ()> {
         loop {
             match swarm.poll().unwrap() {
-                Async::Ready(x) => {
-                    info!("Swarm poll ready: {:?}", x);
-                },
+                Async::Ready(_) => {},
                 Async::NotReady => {
                     if !listening {
                         if let Some(a) = Swarm::listeners(&swarm).next() {
@@ -143,14 +141,7 @@ fn main() {
                 node_known = true;
             }
         }
-
-        /*
-        info!("-------------------------");
-        for entry in swarm.kademlia.kbuckets_entries() {
-            info!("ENTRY: {:?}", entry);
-        }
-        */
-
+ 
         Ok(Async::NotReady)
     }));
 }
