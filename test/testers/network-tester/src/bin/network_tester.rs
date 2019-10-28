@@ -26,6 +26,8 @@ use libp2p::mdns::service::{MdnsPacket, MdnsService};
 use libp2p::kad::record::store::MemoryStore;
 use libp2p::identify::{Identify, IdentifyEvent};
 use libp2p::kad::protocol::KadRequestMsg;
+use libp2p::ping::{Ping, PingEvent};
+use libp2p::ping::handler::PingConfig;
 
 fn main() {
     env_logger::init();
@@ -35,6 +37,7 @@ fn main() {
         kademlia: Kademlia<TSubstream, MemoryStore>,
         mdns: Mdns<TSubstream>,
         identify: Identify<TSubstream>,
+        ping: Ping<TSubstream>,
     }
 
     impl<TSubstream: AsyncRead + AsyncWrite> NetworkBehaviourEventProcess<MdnsEvent> for MyBehaviour<TSubstream> {
@@ -82,6 +85,14 @@ fn main() {
         }
     }
 
+    impl<TSubstream: AsyncRead + AsyncWrite> NetworkBehaviourEventProcess<PingEvent> for MyBehaviour<TSubstream> {
+        fn inject_event(&mut self, event: PingEvent) {
+            match event {
+                _ => info!("IDEN: {:?}", event),
+            }
+        }
+    }
+
     let local_key = Keypair::generate_ed25519();
     let local_public_key = local_key.public();
     let local_peer_id = PeerId::from_public_key(local_public_key.clone());
@@ -95,13 +106,14 @@ fn main() {
 
     let store = MemoryStore::new(local_peer_id.clone());
     let behaviour = Kademlia::new(local_peer_id.clone(), store);
-
     let mdns = Mdns::new().unwrap();
+    let ping = Ping::new(PingConfig::new());
 
     let behaviour = MyBehaviour {
         kademlia: behaviour,
         mdns: mdns,
         identify: Identify::new(String::from("/substrate/1.0"), String::from(""), local_public_key.clone()),
+        ping,
     };
 
     // remote node

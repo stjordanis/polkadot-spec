@@ -10,7 +10,7 @@ edition = "2018"
 log = "0.4.8"
 env_logger = "0.7.0"
 futures = "0.1.29"
-libp2p = { git = "https://github.com/libp2p/rust-libp2p.git", rev = "af61f1f" }
+libp2p = { git = "https://github.com/libp2p/rust-libp2p.git", rev = "732becd" }
 parity-scale-codec = { git = "https://github.com/paritytech/parity-scale-codec.git", rev = "e43bd7f" }
 tokio = "0.1.22"
 
