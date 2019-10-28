@@ -70,6 +70,12 @@ fn main() {
                         debug!("Bootstrap result: {:?}", result);
                     }
                 },
+                KademliaEvent::Discovered{peer_id, addresses, ..} => {
+                    info!("Discovered from DHT peer {}:", peer_id);
+                    for address in addresses.iter() {
+                        debug!("> {}", address);
+                    }
+                },
                 e @ _ => {
                     warn!("Received unhandled Kademlia event: {:?}", e);
                 },
@@ -80,7 +86,7 @@ fn main() {
     impl<TSubstream: AsyncRead + AsyncWrite> NetworkBehaviourEventProcess<IdentifyEvent> for MyBehaviour<TSubstream> {
         fn inject_event(&mut self, event: IdentifyEvent) {
             match event {
-                _ => info!("IDEN: {:?}", event),
+                _ => info!("Identity event: {:?}", event),
             }
         }
     }
@@ -88,7 +94,7 @@ fn main() {
     impl<TSubstream: AsyncRead + AsyncWrite> NetworkBehaviourEventProcess<PingEvent> for MyBehaviour<TSubstream> {
         fn inject_event(&mut self, event: PingEvent) {
             match event {
-                _ => info!("IDEN: {:?}", event),
+                _ => info!("Ping event: {:?}", event),
             }
         }
     }
