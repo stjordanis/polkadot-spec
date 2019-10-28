@@ -34,7 +34,7 @@ fn main() {
             match event {
                 MdnsEvent::Discovered(addrs) => {
                     for (peer_id, multi_addr) in addrs {
-                        debug!("Discovered {}/{}", &multi_addr, peer_id);
+                        debug!("Discovered with mDNS {}/{}", &multi_addr, peer_id);
                         self.kademlia.add_address(&peer_id, multi_addr);
                     }
                 },
@@ -49,7 +49,7 @@ fn main() {
         fn inject_event(&mut self, event: KademliaEvent) {
             match event {
                 KademliaEvent::RoutingUpdated{peer, addresses, ..} => {
-                    info!("Updated DHT with address of {}:", peer);
+                    info!("Updated DHT with address {}:", peer);
                     for address in addresses.iter() {
                         info!("> {}", address);
                     }
@@ -60,9 +60,10 @@ fn main() {
                     }
                 },
                 KademliaEvent::Discovered{peer_id, addresses, ..} => {
-                    info!("Discovered from DHT peer {}:", peer_id);
+                    info!("Discovered with Kademlia {}:", peer_id);
                     for address in addresses.iter() {
-                        debug!("> {}", address);
+                        info!("> {}", address);
+                        self.kademlia.add_address(&peer_id, address.clone());
                     }
                 },
                 e @ _ => {
@@ -102,9 +103,11 @@ fn main() {
         ping,
     };
 
-    // remote node
-    let _remote_peer_id: PeerId = "Qmd6oSuC4tEXHxewrZNdwpVhn8b4NwxpboBCH4kHkH1EYb".parse().unwrap();
-    let remote_addr: Multiaddr = "/ip4/127.0.0.1/tcp/30333".parse().unwrap();
+    //let remote_peer_id: PeerId = "12D3KooWEiCzB4bVxyxYwB7xpSvra1Yz1SB39kih4qHpFjDWoC9J"
+    let remote_peer_id: PeerId = "QmQqpV9ZA9oarV7JgWvhh1DmKep5gGP7TDTjptjCSvswXF"
+        .parse()
+        .unwrap();
+    let remote_addr: Multiaddr = "/ip4/127.0.0.1/tcp/07001".parse().unwrap();
 
     // Create swarm, listen on local port
     let mut swarm = Swarm::new(transport.clone(), behaviour, local_peer_id.clone());
@@ -134,6 +137,8 @@ fn main() {
             swarm.kademlia.bootstrap();
             bootstrap_started = true;
         }
+
+        trace!("Amount of Kademlia entries: {}", swarm.kademlia.kbuckets_entries().count());
 
         Ok(Async::NotReady)
     }));
