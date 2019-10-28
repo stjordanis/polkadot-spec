@@ -3,29 +3,19 @@ extern crate libp2p;
 #[macro_use]
 extern crate log;
 
-use std::env;
-use futures::{prelude::*, future};
+use futures::prelude::*;
 use libp2p::{PeerId, Multiaddr, Transport};
 use libp2p::tcp::TcpConfig;
 use libp2p::identity::Keypair;
 use libp2p::mplex::MplexConfig;
-use libp2p::core::upgrade::SelectUpgrade;
-use libp2p::core::nodes::network::Network;
-use libp2p::core::transport::upgrade::{Builder, Version};
-use libp2p::yamux;
-//use libp2p_secio as secio;
+use libp2p::core::transport::upgrade::Version;
 use libp2p::Swarm;
 use libp2p::secio::SecioConfig;
-use libp2p::swarm::protocols_handler::{ProtocolsHandler, NodeHandlerWrapper, SubstreamProtocol, DummyProtocolsHandler};
-use libp2p::swarm::{NetworkBehaviour, NetworkBehaviourEventProcess};
+use libp2p::swarm::NetworkBehaviourEventProcess;
 use libp2p::mdns::{Mdns, MdnsEvent};
-use libp2p::mplex::Substream;
 use tokio::io::{AsyncRead, AsyncWrite};
 use libp2p::kad::{Kademlia, KademliaEvent};
-use libp2p::mdns::service::{MdnsPacket, MdnsService};
 use libp2p::kad::record::store::MemoryStore;
-use libp2p::identify::{Identify, IdentifyEvent};
-use libp2p::kad::protocol::KadRequestMsg;
 use libp2p::ping::{Ping, PingEvent};
 use libp2p::ping::handler::PingConfig;
 
@@ -36,7 +26,6 @@ fn main() {
     struct MyBehaviour<TSubstream: AsyncRead + AsyncWrite> {
         kademlia: Kademlia<TSubstream, MemoryStore>,
         mdns: Mdns<TSubstream>,
-        identify: Identify<TSubstream>,
         ping: Ping<TSubstream>,
     }
 
@@ -83,14 +72,6 @@ fn main() {
         }
     }
 
-    impl<TSubstream: AsyncRead + AsyncWrite> NetworkBehaviourEventProcess<IdentifyEvent> for MyBehaviour<TSubstream> {
-        fn inject_event(&mut self, event: IdentifyEvent) {
-            match event {
-                _ => info!("Identity event: {:?}", event),
-            }
-        }
-    }
-
     impl<TSubstream: AsyncRead + AsyncWrite> NetworkBehaviourEventProcess<PingEvent> for MyBehaviour<TSubstream> {
         fn inject_event(&mut self, event: PingEvent) {
             match event {
@@ -111,19 +92,18 @@ fn main() {
         .multiplex(MplexConfig::new());
 
     let store = MemoryStore::new(local_peer_id.clone());
-    let behaviour = Kademlia::new(local_peer_id.clone(), store);
+    let kademlia = Kademlia::new(local_peer_id.clone(), store);
     let mdns = Mdns::new().unwrap();
     let ping = Ping::new(PingConfig::new());
 
     let behaviour = MyBehaviour {
-        kademlia: behaviour,
+        kademlia: kademlia,
         mdns: mdns,
-        identify: Identify::new(String::from("/substrate/1.0"), String::from(""), local_public_key.clone()),
         ping,
     };
 
     // remote node
-    let remote_peer_id: PeerId = "Qmd6oSuC4tEXHxewrZNdwpVhn8b4NwxpboBCH4kHkH1EYb".parse().unwrap();
+    let _remote_peer_id: PeerId = "Qmd6oSuC4tEXHxewrZNdwpVhn8b4NwxpboBCH4kHkH1EYb".parse().unwrap();
     let remote_addr: Multiaddr = "/ip4/127.0.0.1/tcp/30333".parse().unwrap();
 
     // Create swarm, listen on local port
@@ -131,11 +111,9 @@ fn main() {
     let _ = Swarm::dial_addr(&mut swarm, remote_addr.clone()).unwrap();
     Swarm::listen_on(&mut swarm, "/ip4/0.0.0.0/tcp/0".parse().unwrap()).unwrap();
 
-    let kad_ping = KadRequestMsg::Ping;
-
     // Run worker
-    let mut node_known = false;
     let mut listening = false;
+    let mut bootstrap_started = false;
     tokio::run(futures::future::poll_fn(move || -> Result<_, ()> {
         loop {
             match swarm.poll().unwrap() {
@@ -152,14 +130,11 @@ fn main() {
             }
         }
 
-        if node_known {
+        if !bootstrap_started && swarm.kademlia.kbuckets_entries().count() > 0 {
             swarm.kademlia.bootstrap();
-        } else {
-            if swarm.kademlia.kbuckets_entries().count() > 0 {
-                node_known = true;
-            }
+            bootstrap_started = true;
         }
- 
+
         Ok(Async::NotReady)
     }));
 }
