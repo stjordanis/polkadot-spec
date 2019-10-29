@@ -8,9 +8,16 @@ use std::marker::PhantomData;
 
 #[derive(Debug, Clone)]
 pub struct ClientConnection<TSubstream> {
-
     /// Marker to pin the generics.
     marker: PhantomData<TSubstream>,
+}
+
+impl<TSubstream> Default for ClientConnection<TSubstream> {
+    fn default() -> Self {
+        ClientConnection {
+            marker: PhantomData,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -155,13 +162,5 @@ where
     fn upgrade_outbound(self, socket: upgrade::Negotiated<TSocket>, _: Self::Info) -> Self::Future {
         let bytes = vec![];
         upgrade::write_one(socket, bytes)
-    }
-}
-
-impl<TSubstream> Default for ClientConnection<TSubstream> {
-    fn default() -> Self {
-        ClientConnection {
-            marker: PhantomData,
-        }
     }
 }
