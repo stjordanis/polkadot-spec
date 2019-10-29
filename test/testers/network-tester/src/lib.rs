@@ -1,3 +1,3 @@
 pub mod client_connection;
 
-pub use client_connection::ClientConnection;
+pub use client_connection::{ClientConnection, ClientConnEvent};

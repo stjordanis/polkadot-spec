@@ -19,7 +19,7 @@ use libp2p::kad::record::store::MemoryStore;
 use libp2p::ping::{Ping, PingEvent};
 use libp2p::ping::handler::PingConfig;
 
-use network_tester::ClientConnection;
+use network_tester::{ClientConnection, ClientConnEvent};
 
 fn main() {
     env_logger::init();
@@ -29,6 +29,7 @@ fn main() {
         kademlia: Kademlia<TSubstream, MemoryStore>,
         mdns: Mdns<TSubstream>,
         ping: Ping<TSubstream>,
+        conn: ClientConnection<TSubstream>,
     }
 
     impl<TSubstream: AsyncRead + AsyncWrite> NetworkBehaviourEventProcess<MdnsEvent> for MyBehaviour<TSubstream> {
@@ -83,6 +84,14 @@ fn main() {
         }
     }
 
+    impl<TSubstream: AsyncRead + AsyncWrite> NetworkBehaviourEventProcess<ClientConnEvent> for MyBehaviour<TSubstream> {
+        fn inject_event(&mut self, event: ClientConnEvent) {
+            match event {
+                _ => debug!("Client connection event: {:?}", event),
+            }
+        }
+    }
+
     let local_key = Keypair::generate_ed25519();
     let local_public_key = local_key.public();
     let local_peer_id = PeerId::from_public_key(local_public_key.clone());
@@ -98,7 +107,7 @@ fn main() {
     let mut kademlia = Kademlia::new(local_peer_id.clone(), store);
     let mdns = Mdns::new().unwrap();
     let ping = Ping::new(PingConfig::new());
-    let _conn = ClientConnection::default();
+    let conn = ClientConnection::default();
 
     // W3F HQ
     let remote_peer_id1: PeerId = "QmQDn7TE6eGE89vtLgzocTj7VgwdPkZUcgsUGRtLrnidhG".parse().unwrap();
@@ -117,6 +126,7 @@ fn main() {
         kademlia: kademlia,
         mdns: mdns,
         ping,
+        conn,
     };
 
     // Create swarm, listen on local port
