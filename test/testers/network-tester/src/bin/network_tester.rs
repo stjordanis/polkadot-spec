@@ -62,7 +62,7 @@ fn main() {
                 KademliaEvent::Discovered{peer_id, addresses, ..} => {
                     info!("Discovered with Kademlia {}:", peer_id);
                     for address in addresses.iter() {
-                        info!("> {}", address);
+                        debug!("> {}", address);
                         self.kademlia.add_address(&peer_id, address.clone());
                     }
                 },
@@ -76,7 +76,7 @@ fn main() {
     impl<TSubstream: AsyncRead + AsyncWrite> NetworkBehaviourEventProcess<PingEvent> for MyBehaviour<TSubstream> {
         fn inject_event(&mut self, event: PingEvent) {
             match event {
-                _ => info!("Ping event: {:?}", event),
+                _ => debug!("Ping event: {:?}", event),
             }
         }
     }
@@ -93,30 +93,37 @@ fn main() {
         .multiplex(MplexConfig::new());
 
     let store = MemoryStore::new(local_peer_id.clone());
-    let kademlia = Kademlia::new(local_peer_id.clone(), store);
+    let mut kademlia = Kademlia::new(local_peer_id.clone(), store);
     let mdns = Mdns::new().unwrap();
     let ping = Ping::new(PingConfig::new());
 
+    // W3F HQ
+    let remote_peer_id1: PeerId = "QmQDn7TE6eGE89vtLgzocTj7VgwdPkZUcgsUGRtLrnidhG".parse().unwrap();
+    let remote_addr1: Multiaddr = "/ip4/192.168.4.120/tcp/30333".parse().unwrap();
+    // Local Gossamer node
+    let remote_peer_id2: PeerId = "QmQqpV9ZA9oarV7JgWvhh1DmKep5gGP7TDTjptjCSvswXF".parse().unwrap();
+    let remote_addr2: Multiaddr = "/ip4/127.0.0.1/tcp/07001".parse().unwrap();
+
+    kademlia.add_address(&remote_peer_id1, remote_addr1.clone());
+    kademlia.add_address(&remote_peer_id2, remote_addr2.clone());
+
+    kademlia.bootstrap();
+
+    // Create custom behaviour
     let behaviour = MyBehaviour {
         kademlia: kademlia,
         mdns: mdns,
         ping,
     };
 
-    //let remote_peer_id: PeerId = "12D3KooWEiCzB4bVxyxYwB7xpSvra1Yz1SB39kih4qHpFjDWoC9J"
-    let remote_peer_id: PeerId = "QmQqpV9ZA9oarV7JgWvhh1DmKep5gGP7TDTjptjCSvswXF"
-        .parse()
-        .unwrap();
-    let remote_addr: Multiaddr = "/ip4/127.0.0.1/tcp/07001".parse().unwrap();
-
     // Create swarm, listen on local port
     let mut swarm = Swarm::new(transport.clone(), behaviour, local_peer_id.clone());
-    let _ = Swarm::dial_addr(&mut swarm, remote_addr.clone()).unwrap();
+    let _ = Swarm::dial_addr(&mut swarm, remote_addr1.clone()).unwrap();
+    let _ = Swarm::dial_addr(&mut swarm, remote_addr2.clone()).unwrap();
     Swarm::listen_on(&mut swarm, "/ip4/0.0.0.0/tcp/0".parse().unwrap()).unwrap();
 
     // Run worker
     let mut listening = false;
-    let mut bootstrap_started = false;
     tokio::run(futures::future::poll_fn(move || -> Result<_, ()> {
         loop {
             match swarm.poll().unwrap() {
@@ -131,11 +138,6 @@ fn main() {
                     break
                 }
             }
-        }
-
-        if !bootstrap_started && swarm.kademlia.kbuckets_entries().count() > 0 {
-            swarm.kademlia.bootstrap();
-            bootstrap_started = true;
         }
 
         trace!("Amount of Kademlia entries: {}", swarm.kademlia.kbuckets_entries().count());
