@@ -19,6 +19,8 @@ use libp2p::kad::record::store::MemoryStore;
 use libp2p::ping::{Ping, PingEvent};
 use libp2p::ping::handler::PingConfig;
 
+use network_tester::ClientConnection;
+
 fn main() {
     env_logger::init();
 
@@ -96,6 +98,7 @@ fn main() {
     let mut kademlia = Kademlia::new(local_peer_id.clone(), store);
     let mdns = Mdns::new().unwrap();
     let ping = Ping::new(PingConfig::new());
+    let _conn = ClientConnection::default();
 
     // W3F HQ
     let remote_peer_id1: PeerId = "QmQDn7TE6eGE89vtLgzocTj7VgwdPkZUcgsUGRtLrnidhG".parse().unwrap();
