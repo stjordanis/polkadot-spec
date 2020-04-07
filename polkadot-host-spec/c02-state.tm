@@ -1,8 +1,8 @@
-<TeXmacs|1.99.11>
+<TeXmacs|1.99.12>
 
 <project|polkadot_host_spec.tm>
 
-<style|book>
+<style|<tuple|book|old-dots>>
 
 <\body>
   <chapter|State Specification><label|chap-state-spec>
@@ -479,25 +479,26 @@
   <subsection|Changes Trie><label|defn-changes-trie>
 
   Polkadot focuses on light client friendliness and therefore implements
-  functionality which allows identifying changes in the blockchain without
+  functionalities which allows identifying changes in the blockchain without
   requiring to search through the entire chain. The <strong|Changes Trie> is
   a datastructure maintained by the Polkadot node which tracks storage
   changes created by each block. The primary method of generating the Changes
   Trie is by calling the <verbatim|ext_storage_changes_root> Host API as
-  described in section <reference|sect-ext-storage-changes-root>. The
-  Polkadot Host requires a mechanism to identify the changes created by a
-  block, as mentioned in section <reference|sect-state-storage>.
+  described in section <reference|sect-ext-storage-changes-root>. In order to
+  provide this API function, it is imperative that the Polkadot Host
+  implements a mechanism to keep track of the changes created by individual
+  blocks, as mentioned in section <reference|sect-state-storage>.
 
   \;
 
   The Changes Trie tracks changes in three different types of mappings (or
-  search indices) which are differentiated by their key as defined in table
+  search indices) which are differentiated by their key as defined in Table
   <reference|table-changes-trie-key-types>. inside the trie. While the
   overall structure of each keys is almost identical, each mapping has it own
   prefix and could therefore be considered a <with|font-shape|italic|varying
-  datatype> (as defined in <reference|defn-varrying-data-type>). In contrast
-  to a <with|font-shape|italic|varying datatype> however, the type
-  identifiers do not describes the type of the key following it, but the
+  datatype> (as defined in Definition <reference|defn-varrying-data-type>).
+  In contrast to a <with|font-shape|italic|varying datatype> however, the
+  type identifiers do not describes the type of the key following it, but the
   corresponding value of that key. The format and use of these values are
   specified in more detail in their corresponding definitions
   <reference|defn-storage-key-to-extrinsics>,
@@ -678,6 +679,15 @@
       the set of all keys and values stored in the state
       storage.|<pageref|auto-4>>
     </associate>
+    <\associate|table>
+      <tuple|normal|<\surround|<hidden-binding|<tuple>|2.1>|>
+        Possible types of keys of mappings in the Changes Trie
+      </surround>|<pageref|auto-9>>
+
+      <tuple|normal|<\surround|<hidden-binding|<tuple>|2.2>|>
+        Key structure inserted in the Changes Trie
+      </surround>|<pageref|auto-10>>
+    </associate>
     <\associate|toc>
       <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|2<space|2spc>State
       Specification> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
@@ -702,6 +712,10 @@
       <with|par-left|<quote|1tab>|2.1.4<space|2spc>Merkle Proof
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-7>>
+
+      <with|par-left|<quote|1tab>|2.1.5<space|2spc>Changes Trie
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-8>>
     </associate>
   </collection>
 </auxiliary>
