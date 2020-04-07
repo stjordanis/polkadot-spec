@@ -1,4 +1,4 @@
-<TeXmacs|1.99.12>
+<TeXmacs|1.99.11>
 
 <project|polkadot_host_spec.tm>
 
@@ -491,7 +491,7 @@
 
   \;
 
-  The Changes Trie tracks changes in three different types of mappings (or
+  The Changes Trie tracks changes of three different types of mappings (or
   search indices) which are differentiated by their key as defined in Table
   <reference|table-changes-trie-key-types>. inside the trie. While the
   overall structure of each keys is almost identical, each mapping has it own
@@ -506,13 +506,12 @@
   <reference|defn-storage-key-to-child-tries> respectivly.<htab|5mm>
 
   <\big-table>
-    <tabular|<tformat|<cwith|2|2|1|-1|cell-bborder|0ln>|<cwith|3|3|1|-1|cell-tborder|1ln>|<cwith|3|3|1|-1|cell-bborder|0ln>|<cwith|4|4|1|-1|cell-tborder|1ln>|<cwith|4|4|1|-1|cell-bborder|1ln>|<cwith|4|4|1|1|cell-lborder|0ln>|<cwith|4|4|3|3|cell-rborder|0ln>|<cwith|1|1|1|-1|cell-tborder|1ln>|<cwith|1|1|1|-1|cell-bborder|1ln>|<cwith|2|2|1|-1|cell-tborder|1ln>|<cwith|1|1|1|1|cell-lborder|0ln>|<cwith|1|1|3|3|cell-rborder|0ln>|<table|<row|<cell|<strong|Id>>|<cell|<strong|Description>>|<cell|<strong|Followed
-    by>>>|<row|<cell|1>|<cell|Mapping between storage key and extrinsics
-    (<reference|defn-storage-key-to-extrinsics>)>|<cell|<em|KeyIndex>
+    <tabular|<tformat|<cwith|2|2|1|-1|cell-bborder|0ln>|<cwith|3|3|1|-1|cell-tborder|1ln>|<cwith|3|3|1|-1|cell-bborder|0ln>|<cwith|4|4|1|-1|cell-tborder|1ln>|<cwith|4|4|1|-1|cell-bborder|1ln>|<cwith|4|4|1|1|cell-lborder|0ln>|<cwith|4|4|3|3|cell-rborder|0ln>|<cwith|1|1|1|-1|cell-tborder|1ln>|<cwith|1|1|1|-1|cell-bborder|1ln>|<cwith|2|2|1|-1|cell-tborder|1ln>|<cwith|1|1|1|1|cell-lborder|0ln>|<cwith|1|1|3|3|cell-rborder|0ln>|<table|<row|<cell|<strong|Id>>|<cell|<strong|Description>>|<cell|<strong|Value>>>|<row|<cell|1>|<cell|Mapping
+    between storage key and extrinsics (<reference|defn-storage-key-to-extrinsics>)>|<cell|<em|KeyIndex>
     (<reference|defn-key-index>)>>|<row|<cell|2>|<cell|Mapping between
     storage key and blocks (<reference|defn-storage-key-to-blocks>)>|<cell|<em|KeyIndex>
     (<reference|defn-key-index>)>>|<row|<cell|3>|<cell|Mapping between
-    storage key and child changes Trie (<reference|defn-storage-key-to-child-tries>)>|<cell|<em|KeyIndex>
+    storage key and Child Changes Trie (<reference|defn-storage-key-to-child-tries>)>|<cell|<em|KeyIndex>
     (<reference|defn-key-index>)>>>>>
 
     \;
@@ -599,8 +598,8 @@
   </definition>
 
   <\definition>
-    <label|defn-storage-key-to-child-tries>The <strong|storage key to child
-    changes tries mappings> track any storage keys from child storages and
+    <label|defn-storage-key-to-child-tries>The <strong|storage key to Child
+    Changes Tries mappings> track any storage keys from child storages and
     their corresponding Child Changes Trie. As described in Definition
     <reference|defn-storage-key-to-extrinsics>, changes inside child storages
     are inserted into their own Trie. The changed key is inserted into the
