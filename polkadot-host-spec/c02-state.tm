@@ -576,10 +576,10 @@
     Changes Tries mappings> track any storage keys from child storages and
     their corresponding Child Changes Trie. As described in Definition
     <reference|defn-storage-key-to-extrinsics>, changes inside child storages
-    are inserted into their own Trie. The changed key is inserted into the
-    main Trie, where its value is the Merkle proof as desribed in section
-    <reference|sect-merkl-proof> of the corresponding Child Storage Trie,
-    which stores the mappings between the storage key and extrinsics.
+    are inserted into their own Trie. The changed child storage key is
+    inserted into the main Trie, where its value is the Merkle proof as
+    desribed in section <reference|sect-merkl-proof> of the corresponding
+    Child Storage Trie.
   </definition>
 
   The Changes Trie itself is not part of the block, but a separately
