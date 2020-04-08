@@ -689,28 +689,28 @@
 
   \;
 
-  The Changes Trie tracks changes of three different types of mappings (or
-  search indices) which are differentiated by their key as defined in Table
-  <reference|table-changes-trie-key-types>. inside the trie. While the
-  overall structure of each keys is almost identical, each mapping has it own
-  prefix and could therefore be considered a <with|font-shape|italic|varying
-  datatype> (as defined in Definition <reference|defn-varrying-data-type>).
-  In contrast to a <with|font-shape|italic|varying datatype> however, the
-  type identifiers do not describes the type of the key following it, but the
-  corresponding value of that key. The format and use of these values are
-  specified in more detail in their corresponding definitions
-  <reference|defn-storage-key-to-extrinsics>,
+  The Changes Trie tracks changes of three different types of mappings. The
+  inserted value mapping into the Changes Trie is formally defined as:
+
+  <\equation*>
+    <around*|(|A<rsub|Type>,H<rsub|i><around*|(|B|)>,\<cal-K\>|)>\<rightarrow\>A<rsub|Value>
+  </equation*>
+
+  where <math|\<cal-K\>> is the changed storage key and <math|A<rsub|Type>>
+  is a varying datatype as defined in Definition
+  <reference|defn-varrying-data-type>, its type including the corresponding
+  value being defined in table <reference|table-changes-trie-key-types>. The
+  format and use of these values are specified in more detail in their
+  corresponding definitions <reference|defn-storage-key-to-extrinsics>,
   <reference|defn-storage-key-to-blocks> and
   <reference|defn-storage-key-to-child-tries> respectivly.<htab|5mm>
 
   <\big-table>
-    <tabular|<tformat|<cwith|2|2|1|-1|cell-bborder|0ln>|<cwith|3|3|1|-1|cell-tborder|1ln>|<cwith|3|3|1|-1|cell-bborder|0ln>|<cwith|4|4|1|-1|cell-tborder|1ln>|<cwith|4|4|1|-1|cell-bborder|1ln>|<cwith|4|4|1|1|cell-lborder|0ln>|<cwith|4|4|3|3|cell-rborder|0ln>|<cwith|1|1|1|-1|cell-tborder|1ln>|<cwith|1|1|1|-1|cell-bborder|1ln>|<cwith|2|2|1|-1|cell-tborder|1ln>|<cwith|1|1|1|1|cell-lborder|0ln>|<cwith|1|1|3|3|cell-rborder|0ln>|<table|<row|<cell|<strong|Id>>|<cell|<strong|Description>>|<cell|<strong|Value>>>|<row|<cell|1>|<cell|Mapping
-    between storage key and extrinsics (<reference|defn-storage-key-to-extrinsics>)>|<cell|<em|KeyIndex>
-    (<reference|defn-key-index>)>>|<row|<cell|2>|<cell|Mapping between
-    storage key and blocks (<reference|defn-storage-key-to-blocks>)>|<cell|<em|KeyIndex>
-    (<reference|defn-key-index>)>>|<row|<cell|3>|<cell|Mapping between
-    storage key and Child Changes Trie (<reference|defn-storage-key-to-child-tries>)>|<cell|<em|KeyIndex>
-    (<reference|defn-key-index>)>>>>>
+    <tabular|<tformat|<cwith|2|2|1|-1|cell-bborder|0ln>|<cwith|3|3|1|-1|cell-tborder|1ln>|<cwith|3|3|1|-1|cell-bborder|0ln>|<cwith|4|4|1|-1|cell-tborder|1ln>|<cwith|4|4|1|-1|cell-bborder|1ln>|<cwith|4|4|1|1|cell-lborder|0ln>|<cwith|4|4|3|3|cell-rborder|0ln>|<cwith|1|1|1|-1|cell-tborder|1ln>|<cwith|1|1|1|-1|cell-bborder|1ln>|<cwith|2|2|1|-1|cell-tborder|1ln>|<cwith|1|1|1|1|cell-lborder|0ln>|<cwith|1|1|3|3|cell-rborder|0ln>|<table|<row|<cell|<strong|Type>>|<cell|<strong|Description>>|<cell|<strong|Value>>>|<row|<cell|1>|<cell|Mapping
+    between storage key and extrinsics (<reference|defn-storage-key-to-extrinsics>)>|<cell|<math|<around*|(|e<rsub|i>,\<ldots\>,e<rsub|n>|)>>>>|<row|<cell|2>|<cell|Mapping
+    between storage key and blocks (<reference|defn-storage-key-to-blocks>)>|<cell|<math|<around*|(|H<rsub|i><around*|(|B<rsub|i>|)>,\<ldots\>,H<rsub|i><around*|(|B<rsub|n>|)>|)>>>>|<row|<cell|3>|<cell|Mapping
+    between storage key and Child Changes Trie
+    (<reference|defn-storage-key-to-child-tries>)>|<cell|<math|H<rsub|r><around*|(|<text|<em|ChildStorage<em|>>>|)>>>>>>>
 
     \;
   <|big-table>
@@ -720,18 +720,6 @@
 
   <strong|Note>: Unlike the default encoding for varying data types, this
   structure starts its indexing at <verbatim|1>.
-
-  <\definition>
-    <label|defn-key-index>The <strong|Key Index> is a tuple containing the
-    following information:
-
-    <\big-table|<tabular|<tformat|<cwith|2|2|1|1|cell-lborder|0ln>|<cwith|2|2|3|3|cell-rborder|0ln>|<cwith|3|3|1|-1|cell-tborder|1ln>|<cwith|2|2|1|-1|cell-bborder|1ln>|<cwith|3|3|1|-1|cell-bborder|1ln>|<cwith|3|3|1|1|cell-lborder|0ln>|<cwith|3|3|3|3|cell-rborder|0ln>|<cwith|1|1|1|-1|cell-tborder|1ln>|<cwith|1|1|1|-1|cell-bborder|1ln>|<cwith|2|2|1|-1|cell-tborder|1ln>|<cwith|1|1|1|1|cell-lborder|0ln>|<cwith|1|1|3|3|cell-rborder|0ln>|<table|<row|<cell|<strong|Name>>|<cell|<strong|Description>>|<cell|<strong|Type>>>|<row|<cell|Block>|<cell|Block
-    number at which this key has been inserted in the trie>|<cell|Unsigned
-    32-bit integer>>|<row|<cell|Key>|<cell|The changed key>|<cell|Byte
-    array>>>>>>
-      Key structure inserted in the Changes Trie
-    </big-table>
-  </definition>
 
   <\definition>
     <label|defn-storage-key-to-extrinsics>The <strong|storage key to
@@ -846,9 +834,9 @@
     <associate|defn-inherent-data|<tuple|3.5|?>>
     <associate|defn-key-index|<tuple|3.11|?>>
     <associate|defn-set-state-at|<tuple|3.10|?>>
-    <associate|defn-storage-key-to-blocks|<tuple|3.13|?>>
-    <associate|defn-storage-key-to-child-tries|<tuple|3.14|?>>
-    <associate|defn-storage-key-to-extrinsics|<tuple|3.12|?>>
+    <associate|defn-storage-key-to-blocks|<tuple|3.12|?>>
+    <associate|defn-storage-key-to-child-tries|<tuple|3.13|?>>
+    <associate|defn-storage-key-to-extrinsics|<tuple|3.11|?>>
     <associate|defn-transaction-queue|<tuple|3.4|?>>
     <associate|nota-call-into-runtime|<tuple|3.2|?>>
     <associate|nota-runtime-code-at-state|<tuple|3.1|?>>
