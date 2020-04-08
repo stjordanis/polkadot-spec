@@ -706,9 +706,11 @@
   <reference|defn-storage-key-to-child-tries> respectivly.<htab|5mm>
 
   <\big-table>
-    <tabular|<tformat|<cwith|2|2|1|-1|cell-bborder|0ln>|<cwith|3|3|1|-1|cell-tborder|1ln>|<cwith|3|3|1|-1|cell-bborder|0ln>|<cwith|4|4|1|-1|cell-tborder|1ln>|<cwith|4|4|1|-1|cell-bborder|1ln>|<cwith|4|4|1|1|cell-lborder|0ln>|<cwith|4|4|3|3|cell-rborder|0ln>|<cwith|1|1|1|-1|cell-tborder|1ln>|<cwith|1|1|1|-1|cell-bborder|1ln>|<cwith|2|2|1|-1|cell-tborder|1ln>|<cwith|1|1|1|1|cell-lborder|0ln>|<cwith|1|1|3|3|cell-rborder|0ln>|<table|<row|<cell|<strong|Type>>|<cell|<strong|Description>>|<cell|<strong|Value>>>|<row|<cell|1>|<cell|Mapping
-    between storage key and extrinsics (<reference|defn-storage-key-to-extrinsics>)>|<cell|<math|<around*|(|e<rsub|i>,\<ldots\>,e<rsub|n>|)>>>>|<row|<cell|2>|<cell|Mapping
-    between storage key and blocks (<reference|defn-storage-key-to-blocks>)>|<cell|<math|<around*|(|H<rsub|i><around*|(|B<rsub|i>|)>,\<ldots\>,H<rsub|i><around*|(|B<rsub|n>|)>|)>>>>|<row|<cell|3>|<cell|Mapping
+    <tabular|<tformat|<cwith|2|2|1|-1|cell-bborder|0ln>|<cwith|4|4|1|-1|cell-tborder|1ln>|<cwith|4|4|1|-1|cell-bborder|0ln>|<cwith|5|5|1|-1|cell-tborder|1ln>|<cwith|5|5|1|-1|cell-bborder|1ln>|<cwith|5|5|1|1|cell-lborder|0ln>|<cwith|5|5|3|3|cell-rborder|0ln>|<cwith|1|1|1|-1|cell-tborder|1ln>|<cwith|1|1|1|-1|cell-bborder|1ln>|<cwith|2|2|1|-1|cell-tborder|1ln>|<cwith|1|1|1|1|cell-lborder|0ln>|<cwith|1|1|3|3|cell-rborder|0ln>|<table|<row|<cell|<strong|Type>>|<cell|<strong|Description>>|<cell|<strong|Value>>>|<row|<cell|1>|<cell|Mapping
+    between storage key and extrinsics (<reference|defn-storage-key-to-extrinsics>)>|<cell|<math|<around*|(|e<rsub|i>,\<ldots\>,e<rsub|n>|)>>>>|<row|<cell|>|<cell|<text-dots>
+    where <math|e<rsub|i> refers to the >indice of the extrinsic within the
+    block>|<cell|>>|<row|<cell|2>|<cell|Mapping between storage key and
+    blocks (<reference|defn-storage-key-to-blocks>)>|<cell|<math|<around*|(|H<rsub|i><around*|(|B<rsub|i>|)>,\<ldots\>,H<rsub|i><around*|(|B<rsub|n>|)>|)>>>>|<row|<cell|3>|<cell|Mapping
     between storage key and Child Changes Trie
     (<reference|defn-storage-key-to-child-tries>)>|<cell|<math|H<rsub|r><around*|(|<text|<em|ChildStorage<em|>>>|)>>>>>>>
 
