@@ -568,33 +568,7 @@
     The Changes Trie is generated when the Runtime calls
     <verbatim|ext_storage_changes_root> as described in section
     <reference|sect-ext-storage-changes-root>, but unlike the other mappings,
-    they are not generated on each block. The Runtime sets the key
-    <verbatim|:changes_trie> in storage with its value being a tuple of two
-    32-bit integers:
-
-    <\itemize-dot>
-      <item><verbatim|digest_interval> - The interval (in blocks) at which
-      block mappings are created. Block mappings are not created when this is
-      less or equal to <verbatim|1>.
-
-      <item><verbatim|digest_levels> - Maximal number of \Plevels\Q in the
-      hierarchy. <verbatim|0> means that block mappings are not created at
-      all. <verbatim|1> means only the regular <verbatim|digest_interval>
-      block mappings are created. Any other level means that the block
-      mappings are created every <verbatim|<math|digest_interval<rsup|level>>>
-      block for each level in <verbatim|1> to <verbatim|digest_levels>.
-    </itemize-dot>
-
-    The Polkadot node must track the interval and levels, verify if
-    conditions apply and then generate those mappings when the Runtime calls
-    <verbatim|ext_storage_changes_root>. The range spans from the last block
-    (where this kind of mappings were created) + 1 to the current block.
-
-    \;
-
-    Whenever the interval and level stored in <verbatim|:changes_trie>
-    changes the current interval is reset and an new digest according to the
-    changed parameters is started.
+    those are not generated on each block.
   </definition>
 
   <\definition>
