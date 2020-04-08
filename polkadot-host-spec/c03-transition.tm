@@ -671,6 +671,122 @@
 
   For the definition of the state storage see Section
   <reference|sect-state-storage>.
+
+  <subsection|Changes Trie><label|sect-changes-trie>
+
+  Polkadot focuses on light client friendliness and therefore implements
+  functionalities which allows identifying changes in the blockchain without
+  requiring to search through the entire chain. The <strong|Changes Trie> is
+  a radix-16 tree datastructure as defined in Definition
+  <reference|defn-radix-tree> and maintained by the Polkadot node. It tracks
+  every storage change created by each block. The primary method of
+  generating the Changes Trie is by calling the
+  <verbatim|ext_storage_changes_root> Host API as described in section
+  <reference|sect-ext-storage-changes-root>. In order to provide this API
+  function, it is imperative that the Polkadot Host implements a mechanism to
+  keep track of the changes created by individual blocks, as mentioned in
+  section <reference|sect-state-storage>.
+
+  \;
+
+  The Changes Trie tracks changes of three different types of mappings (or
+  search indices) which are differentiated by their key as defined in Table
+  <reference|table-changes-trie-key-types>. inside the trie. While the
+  overall structure of each keys is almost identical, each mapping has it own
+  prefix and could therefore be considered a <with|font-shape|italic|varying
+  datatype> (as defined in Definition <reference|defn-varrying-data-type>).
+  In contrast to a <with|font-shape|italic|varying datatype> however, the
+  type identifiers do not describes the type of the key following it, but the
+  corresponding value of that key. The format and use of these values are
+  specified in more detail in their corresponding definitions
+  <reference|defn-storage-key-to-extrinsics>,
+  <reference|defn-storage-key-to-blocks> and
+  <reference|defn-storage-key-to-child-tries> respectivly.<htab|5mm>
+
+  <\big-table>
+    <tabular|<tformat|<cwith|2|2|1|-1|cell-bborder|0ln>|<cwith|3|3|1|-1|cell-tborder|1ln>|<cwith|3|3|1|-1|cell-bborder|0ln>|<cwith|4|4|1|-1|cell-tborder|1ln>|<cwith|4|4|1|-1|cell-bborder|1ln>|<cwith|4|4|1|1|cell-lborder|0ln>|<cwith|4|4|3|3|cell-rborder|0ln>|<cwith|1|1|1|-1|cell-tborder|1ln>|<cwith|1|1|1|-1|cell-bborder|1ln>|<cwith|2|2|1|-1|cell-tborder|1ln>|<cwith|1|1|1|1|cell-lborder|0ln>|<cwith|1|1|3|3|cell-rborder|0ln>|<table|<row|<cell|<strong|Id>>|<cell|<strong|Description>>|<cell|<strong|Value>>>|<row|<cell|1>|<cell|Mapping
+    between storage key and extrinsics (<reference|defn-storage-key-to-extrinsics>)>|<cell|<em|KeyIndex>
+    (<reference|defn-key-index>)>>|<row|<cell|2>|<cell|Mapping between
+    storage key and blocks (<reference|defn-storage-key-to-blocks>)>|<cell|<em|KeyIndex>
+    (<reference|defn-key-index>)>>|<row|<cell|3>|<cell|Mapping between
+    storage key and Child Changes Trie (<reference|defn-storage-key-to-child-tries>)>|<cell|<em|KeyIndex>
+    (<reference|defn-key-index>)>>>>>
+
+    \;
+  <|big-table>
+    <label|table-changes-trie-key-types>Possible types of keys of mappings in
+    the Changes Trie
+  </big-table>
+
+  <strong|Note>: Unlike the default encoding for varying data types, this
+  structure starts its indexing at <verbatim|1>.
+
+  <\definition>
+    <label|defn-key-index>The <strong|Key Index> is a tuple containing the
+    following information:
+
+    <\big-table|<tabular|<tformat|<cwith|2|2|1|1|cell-lborder|0ln>|<cwith|2|2|3|3|cell-rborder|0ln>|<cwith|3|3|1|-1|cell-tborder|1ln>|<cwith|2|2|1|-1|cell-bborder|1ln>|<cwith|3|3|1|-1|cell-bborder|1ln>|<cwith|3|3|1|1|cell-lborder|0ln>|<cwith|3|3|3|3|cell-rborder|0ln>|<cwith|1|1|1|-1|cell-tborder|1ln>|<cwith|1|1|1|-1|cell-bborder|1ln>|<cwith|2|2|1|-1|cell-tborder|1ln>|<cwith|1|1|1|1|cell-lborder|0ln>|<cwith|1|1|3|3|cell-rborder|0ln>|<table|<row|<cell|<strong|Name>>|<cell|<strong|Description>>|<cell|<strong|Type>>>|<row|<cell|Block>|<cell|Block
+    number at which this key has been inserted in the trie>|<cell|Unsigned
+    32-bit integer>>|<row|<cell|Key>|<cell|The changed key>|<cell|Byte
+    array>>>>>>
+      Key structure inserted in the Changes Trie
+    </big-table>
+  </definition>
+
+  <\definition>
+    <label|defn-storage-key-to-extrinsics>The <strong|storage key to
+    extrinsics mappings> track any changes which occure in an individual
+    block. Its value is a SCALE encoded array containing the indices of the
+    extrinsics that caused any changes to its key. The indices are unsigned
+    32-bit integers and their values is based on the order in which each
+    extrinsic is appears in the block. Additionally, a separate Changes Trie
+    is created for each child storage where changes occured.
+
+    \;
+
+    Keys that were modified outside of extrinsics, such as changes made by
+    the Runtime directly, have a <verbatim|0xffffffff> value as its indice.
+
+    \;
+
+    The Changes Trie is generated when the Runtime calls
+    <verbatim|ext_storage_changes_root> as described in section
+    <reference|sect-ext-storage-changes-root>.
+  </definition>
+
+  <\definition>
+    <label|defn-storage-key-to-blocks>The <strong|storage key to blocks
+    mappings> track any changes which occured in a certain range of blocks.
+    Its value is a SCALE encoded array containing block numbers where
+    extrinsics caused any changes to its key. The block numbers are
+    represented as unsigned 32-bit integers.
+
+    \;
+
+    The Changes Trie is generated when the Runtime calls
+    <verbatim|ext_storage_changes_root> as described in section
+    <reference|sect-ext-storage-changes-root>, but unlike the other mappings,
+    those are not generated on each block.
+  </definition>
+
+  <\definition>
+    <label|defn-storage-key-to-child-tries>The <strong|storage key to Child
+    Changes Tries mappings> track any storage keys from child storages and
+    their corresponding Child Changes Trie. As described in Definition
+    <reference|defn-storage-key-to-extrinsics>, changes inside child storages
+    are inserted into their own Trie. The changed child storage key is
+    inserted into the main Trie, where its value is the Merkle proof as
+    desribed in section <reference|sect-merkl-proof> of the corresponding
+    Child Storage Trie.
+  </definition>
+
+  The Changes Trie itself is not part of the block, but a separately
+  maintained database by the Polkadot node. The Merkle proof of the Changes
+  Trie must be inlcuded in the block digest as described in Definition
+  <reference|defn-digest> and gets calculated as described in section
+  <reference|sect-merkl-proof>. The root calculation uses entries of a
+  per-block basis (including block mappings when conditions apply on that
+  block), not the whole changes spanning multiple blocks.
 </body>
 
 <\initial>
@@ -711,7 +827,10 @@
     <associate|auto-25|<tuple|3.3.2|?>>
     <associate|auto-26|<tuple|3.3.3|?>>
     <associate|auto-27|<tuple|3.3.4|?>>
+    <associate|auto-28|<tuple|3.3.5|?>>
+    <associate|auto-29|<tuple|3.3|?>>
     <associate|auto-3|<tuple|3.1.1|?>>
+    <associate|auto-30|<tuple|3.4|?>>
     <associate|auto-4|<tuple|3.1.2|?>>
     <associate|auto-5|<tuple|3.1.2.1|?>>
     <associate|auto-6|<tuple|3.1.2.2|?>>
@@ -725,7 +844,11 @@
     <associate|defn-block-header-hash|<tuple|3.8|?>>
     <associate|defn-digest|<tuple|3.7|?>>
     <associate|defn-inherent-data|<tuple|3.5|?>>
+    <associate|defn-key-index|<tuple|3.11|?>>
     <associate|defn-set-state-at|<tuple|3.10|?>>
+    <associate|defn-storage-key-to-blocks|<tuple|3.13|?>>
+    <associate|defn-storage-key-to-child-tries|<tuple|3.14|?>>
+    <associate|defn-storage-key-to-extrinsics|<tuple|3.12|?>>
     <associate|defn-transaction-queue|<tuple|3.4|?>>
     <associate|nota-call-into-runtime|<tuple|3.2|?>>
     <associate|nota-runtime-code-at-state|<tuple|3.1|?>>
@@ -733,6 +856,7 @@
     <associate|sect-block-format|<tuple|3.3.1|?>>
     <associate|sect-block-submission|<tuple|3.3.2|?>>
     <associate|sect-block-validation|<tuple|3.3.3|?>>
+    <associate|sect-changes-trie|<tuple|3.3.5|?>>
     <associate|sect-entries-into-runtime|<tuple|3.1|?>>
     <associate|sect-extrinsics|<tuple|3.2|?>>
     <associate|sect-justified-block-header|<tuple|3.3.1.2|?>>
@@ -743,6 +867,7 @@
     <associate|sect-state-replication|<tuple|3.3|?>>
     <associate|tabl-digest-items|<tuple|3.2|?>>
     <associate|tabl-inherent-data|<tuple|3.1|?>>
+    <associate|table-changes-trie-key-types|<tuple|3.3|?>>
   </collection>
 </references>
 
