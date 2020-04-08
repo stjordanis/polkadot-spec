@@ -16,6 +16,14 @@
   limits on their length. The limit is imposed by the encoding algorithms to
   store the key and the value in the storage trie.
 
+  \;
+
+  The state storage requires a mechanism to identify any changes made by each
+  block, in case non-finalized blocks have to be reverted or a Changes Trie
+  as described in section <reference|sect-general-tree-structure> needs to be
+  created. This specification does not dictate how that mechanism must be
+  implemented.
+
   <subsection|Accessing System Storage >
 
   The Polkadot Host implements various functions to facilitate access to the
@@ -47,7 +55,7 @@
     \;
   </definition>
 
-  <subsection|The General Tree Structure>
+  <subsection|The General Tree Structure><label|sect-general-tree-structure>
 
   In order to ensure the integrity of the state of the system, the stored
   data needs to be re-arranged and hashed in a <em|modified Merkle Patricia
@@ -476,18 +484,20 @@
     <math|H<around*|(|R|)>>.
   </definition>
 
-  <subsection|Changes Trie><label|defn-changes-trie>
+  <subsection|Changes Trie><label|sect-changes-trie>
 
   Polkadot focuses on light client friendliness and therefore implements
   functionalities which allows identifying changes in the blockchain without
   requiring to search through the entire chain. The <strong|Changes Trie> is
-  a datastructure maintained by the Polkadot node which tracks storage
-  changes created by each block. The primary method of generating the Changes
-  Trie is by calling the <verbatim|ext_storage_changes_root> Host API as
-  described in section <reference|sect-ext-storage-changes-root>. In order to
-  provide this API function, it is imperative that the Polkadot Host
-  implements a mechanism to keep track of the changes created by individual
-  blocks, as mentioned in section <reference|sect-state-storage>.
+  a radix-16 tree datastructure as defined in Definition
+  <reference|defn-radix-tree> and maintained by the Polkadot node. It tracks
+  every storage change created by each block. The primary method of
+  generating the Changes Trie is by calling the
+  <verbatim|ext_storage_changes_root> Host API as described in section
+  <reference|sect-ext-storage-changes-root>. In order to provide this API
+  function, it is imperative that the Polkadot Host implements a mechanism to
+  keep track of the changes created by individual blocks, as mentioned in
+  section <reference|sect-state-storage>.
 
   \;
 
@@ -633,6 +643,8 @@
     <associate|defn-storage-key-to-extrinsics|<tuple|2.14|?>>
     <associate|defn-stored-value|<tuple|2.1|?>>
     <associate|key-encode-in-trie|<tuple|2.1|?>>
+    <associate|sect-changes-trie|<tuple|2.1.5|?>>
+    <associate|sect-general-tree-structure|<tuple|2.1.2|?>>
     <associate|sect-merkl-proof|<tuple|2.1.4|?>>
     <associate|sect-state-storage|<tuple|2.1|?>>
     <associate|sect-state-storage-trie-structure|<tuple|2.1.3|?>>
