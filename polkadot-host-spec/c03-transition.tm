@@ -690,7 +690,7 @@
   \;
 
   The Changes Trie tracks changes of three different types of mappings. The
-  inserted value mapping into the Changes Trie is formally defined as:
+  inserted key/value mapping into the Changes Trie is formally defined as:
 
   <\equation*>
     <around*|(|A<rsub|Type>,H<rsub|i><around*|(|B|)>,\<cal-K\>|)>\<rightarrow\>A<rsub|Value>
@@ -698,8 +698,8 @@
 
   where <math|\<cal-K\>> is the changed storage key and <math|A<rsub|Type>>
   is a varying datatype as defined in Definition
-  <reference|defn-varrying-data-type>, its type including the corresponding
-  value being defined in table <reference|table-changes-trie-key-types>. The
+  <reference|defn-varrying-data-type>. Its type including the corresponding
+  value is defined in table <reference|table-changes-trie-key-types>. The
   format and use of these values are specified in more detail in their
   corresponding definitions <reference|defn-storage-key-to-extrinsics>,
   <reference|defn-storage-key-to-blocks> and
