@@ -767,18 +767,19 @@
   <subsubsection|Key to block pairs>
 
   This key-value pair stores changes which occured in a certain range of
-  blocks. Its value is a SCALE encoded array containing block numbers where
-  extrinsics caused any changes to the specified key. The key-value pair is
-  defined as:
+  blocks. Its value is a SCALE encoded array containing block numbers in
+  which extrinsics caused any changes to the specified key. The key-value
+  pair is defined as:
 
   <\equation*>
     <around*|(|2,H<rsub|i><around*|(|B<rsub|i>|)>,K|)>\<rightarrow\><around*|{|H<rsub|i><around*|(|B<rsub|n>|)>,\<ldots\>,H<rsub|i><around*|(|B<rsub|m>|)>|}>
   </equation*>
 
-  The block numbers are represented as unsigned 32-bit integers. The Polkadot
-  Host does <strong|not> generate those pairs on every block. The genesis
-  states contains the key <verbatim|:changes_trie> where its unsigned 64-bit
-  value represents two 32-bit integers:
+  The block numbers are represented as unsigned 32-bit integers. There are
+  multiple \Plevels\Q of those pairs, and the Polkadot Host does <strong|not>
+  generate those pairs on every block. The genesis states contains the key
+  <verbatim|:changes_trie> where its unsigned 64-bit value represents two
+  32-bit integers:
 
   <\itemize-dot>
     <item><verbatim|interval> - The interval (in blocks) at which those pairs
@@ -791,7 +792,7 @@
   </itemize-dot>
 
   For each level from 1 to <verbatim|levels>, the Polkadot Host creates those
-  pairs for on every <verbatim|<math|<text|interval<rsup|level><verbatim|>>>>-nth
+  pairs on every <verbatim|<math|<text|interval<rsup|level><verbatim|>>>>-nth
   block, formally applied as:
 
   <\algorithm|<name|Key-To-Block-Pairs>(<math|B<rsub|i>>, interval, levels)>
@@ -810,45 +811,51 @@
   </algorithm>
 
   <\itemize-dot>
+    <item><math|B<rsub|i>> implies the block at which those pairs gets
+    inserted into the Changes Trie.
+
     <item><name|Insert-Blocks> - Inserts every block number within the range
-    <math|H<rsub|i><around*|(|B<rsub|i>|)>-I<rsup|l>+1> to <math|H<rsub|i>>
-    where any extrinsic changed the specified key.
+    <math|H<rsub|i><around*|(|B<rsub|i>|)>-I<rsup|l>+1> to
+    <math|H<rsub|i><around*|(|B<rsub|i>|)>> where any extrinsic changed the
+    specified key.
   </itemize-dot>
+
+  \;
 
   For example, let's say <verbatim|interval> is set at <verbatim|4> and
   <verbatim|levels> is set at <verbatim|3>. This means there are now three
-  levels which get generated at occurences:
+  levels which get generated at three different occurences:
 
   <\enumerate-numeric>
     <item><strong|Level 1> - Those pairs are generated at every
     <math|<text|<strong|4<rsup|1>>>>-nth block, where the pair value contains
     the block numbers of every block that changed the specified storage key.
     This level only considers block numbers of the last four
-    (<math|4<rsup|1>>) blocks.
+    (<math|=4<rsup|1>>) blocks.
 
-    \;
-
-    Example: this level occurs at block 4, 8, 12, 16, 32, etc.
+    <\itemize-dot>
+      <item>Example: this level occurs at block 4, 8, 12, 16, 32, etc.
+    </itemize-dot>
 
     <item><strong|Level 2> - Those pairs are generated at every
-    <math|<text|<strong|4<rsup|2> >>>-nth block, where the pair value
-    contains the block numbers of every block that changed the specified
-    storage key. This level only considers block numbers of the last 16
-    (<math|4<rsup|2>>) blocks.
+    <math|<text|<strong|4<rsup|2>>>>-nth block, where the pair value contains
+    the block numbers of every block that changed the specified storage key.
+    This level only considers block numbers of the last 16
+    (<math|=4<rsup|2>>) blocks.
 
-    \;
-
-    Example: this level occurs at block 16, 32, 64, 128, 256, etc.
+    <\itemize-dot>
+      <item>Example: this level occurs at block 16, 32, 64, 128, 256, etc.
+    </itemize-dot>
 
     <item><strong|Level 3> - Those pairs are generated at every
     <text|<math|<text|<strong|4<rsup|3>>>>>-nth block, where the pair value
     contains the block numbers of every block that changed the specified
     storage key. this level only considers block number of the last 64
-    (<math|4<rsup|3>>) blocks.
+    (<math|=4<rsup|3>>) blocks.
 
-    \;
-
-    Example: this level occurs at block 64, 128, 196, 256, 320, etc.
+    <\itemize-dot>
+      <item>Example: this level occurs at block 64, 128, 196, 256, 320, etc.
+    </itemize-dot>
   </enumerate-numeric>
 </body>
 
@@ -866,71 +873,71 @@
 
 <\references>
   <\collection>
-    <associate|algo-import-and-validate-block|<tuple|3.4|?>>
-    <associate|algo-maintain-transaction-pool|<tuple|3.3|?>>
-    <associate|algo-runtime-interaction|<tuple|3.1|?>>
-    <associate|algo-validate-transactions|<tuple|3.2|?>>
-    <associate|auto-1|<tuple|3|?>>
-    <associate|auto-10|<tuple|3.2.2|?>>
-    <associate|auto-11|<tuple|3.2.2.1|?>>
-    <associate|auto-12|<tuple|3.2.3|?>>
-    <associate|auto-13|<tuple|3.2.3|?>>
-    <associate|auto-14|<tuple|3.2.3|?>>
-    <associate|auto-15|<tuple|3.2.3|?>>
-    <associate|auto-16|<tuple|<with|mode|<quote|math>|<rigid|->>|?>>
-    <associate|auto-17|<tuple|3.2.3.1|?>>
-    <associate|auto-18|<tuple|3.1|?>>
-    <associate|auto-19|<tuple|3.3|?>>
-    <associate|auto-2|<tuple|3.1|?>>
-    <associate|auto-20|<tuple|3.3.1|?>>
-    <associate|auto-21|<tuple|3.3.1.1|?>>
-    <associate|auto-22|<tuple|3.2|?>>
-    <associate|auto-23|<tuple|3.3.1.2|?>>
-    <associate|auto-24|<tuple|3.3.1.3|?>>
-    <associate|auto-25|<tuple|3.3.2|?>>
-    <associate|auto-26|<tuple|3.3.3|?>>
-    <associate|auto-27|<tuple|3.3.4|?>>
-    <associate|auto-28|<tuple|3.3.5|?>>
-    <associate|auto-29|<tuple|3.3|?>>
-    <associate|auto-3|<tuple|3.1.1|?>>
-    <associate|auto-30|<tuple|3.3.5.1|?>>
-    <associate|auto-31|<tuple|3.3.5.2|?>>
-    <associate|auto-4|<tuple|3.1.2|?>>
-    <associate|auto-5|<tuple|3.1.2.1|?>>
-    <associate|auto-6|<tuple|3.1.2.2|?>>
-    <associate|auto-7|<tuple|3.1.2.3|?>>
-    <associate|auto-8|<tuple|3.2|?>>
-    <associate|auto-9|<tuple|3.2.1|?>>
-    <associate|block|<tuple|3.3.1.1|?>>
-    <associate|chap-state-transit|<tuple|3|?>>
-    <associate|defn-block-body|<tuple|3.9|?>>
-    <associate|defn-block-header|<tuple|3.6|?>>
-    <associate|defn-block-header-hash|<tuple|3.8|?>>
-    <associate|defn-digest|<tuple|3.7|?>>
-    <associate|defn-inherent-data|<tuple|3.5|?>>
-    <associate|defn-set-state-at|<tuple|3.10|?>>
+    <associate|algo-import-and-validate-block|<tuple|3.4|28>>
+    <associate|algo-maintain-transaction-pool|<tuple|3.3|26>>
+    <associate|algo-runtime-interaction|<tuple|3.1|23>>
+    <associate|algo-validate-transactions|<tuple|3.2|25>>
+    <associate|auto-1|<tuple|3|23>>
+    <associate|auto-10|<tuple|3.2.2|25>>
+    <associate|auto-11|<tuple|3.2.2.1|25>>
+    <associate|auto-12|<tuple|3.2.3|25>>
+    <associate|auto-13|<tuple|3.2.3|25>>
+    <associate|auto-14|<tuple|3.2.3|25>>
+    <associate|auto-15|<tuple|3.2.3|25>>
+    <associate|auto-16|<tuple|<with|mode|<quote|math>|<rigid|->>|26>>
+    <associate|auto-17|<tuple|3.2.3.1|26>>
+    <associate|auto-18|<tuple|3.1|26>>
+    <associate|auto-19|<tuple|3.3|26>>
+    <associate|auto-2|<tuple|3.1|23>>
+    <associate|auto-20|<tuple|3.3.1|27>>
+    <associate|auto-21|<tuple|3.3.1.1|27>>
+    <associate|auto-22|<tuple|3.2|27>>
+    <associate|auto-23|<tuple|3.3.1.2|28>>
+    <associate|auto-24|<tuple|3.3.1.3|28>>
+    <associate|auto-25|<tuple|3.3.2|28>>
+    <associate|auto-26|<tuple|3.3.3|28>>
+    <associate|auto-27|<tuple|3.3.4|29>>
+    <associate|auto-28|<tuple|3.3.5|29>>
+    <associate|auto-29|<tuple|3.3|29>>
+    <associate|auto-3|<tuple|3.1.1|23>>
+    <associate|auto-30|<tuple|3.3.5.1|30>>
+    <associate|auto-31|<tuple|3.3.5.2|30>>
+    <associate|auto-4|<tuple|3.1.2|24>>
+    <associate|auto-5|<tuple|3.1.2.1|24>>
+    <associate|auto-6|<tuple|3.1.2.2|24>>
+    <associate|auto-7|<tuple|3.1.2.3|24>>
+    <associate|auto-8|<tuple|3.2|24>>
+    <associate|auto-9|<tuple|3.2.1|25>>
+    <associate|block|<tuple|3.3.1.1|27>>
+    <associate|chap-state-transit|<tuple|3|23>>
+    <associate|defn-block-body|<tuple|3.9|28>>
+    <associate|defn-block-header|<tuple|3.6|27>>
+    <associate|defn-block-header-hash|<tuple|3.8|28>>
+    <associate|defn-digest|<tuple|3.7|27>>
+    <associate|defn-inherent-data|<tuple|3.5|26>>
+    <associate|defn-set-state-at|<tuple|3.10|29>>
     <associate|defn-storage-key-to-blocks|<tuple|3.11|?>>
     <associate|defn-storage-key-to-child-tries|<tuple|3.11|?>>
     <associate|defn-storage-key-to-extrinsics|<tuple|3.11|?>>
-    <associate|defn-transaction-queue|<tuple|3.4|?>>
-    <associate|nota-call-into-runtime|<tuple|3.2|?>>
-    <associate|nota-runtime-code-at-state|<tuple|3.1|?>>
-    <associate|sect-block-body|<tuple|3.3.1.3|?>>
-    <associate|sect-block-format|<tuple|3.3.1|?>>
-    <associate|sect-block-submission|<tuple|3.3.2|?>>
-    <associate|sect-block-validation|<tuple|3.3.3|?>>
-    <associate|sect-changes-trie|<tuple|3.3.5|?>>
-    <associate|sect-entries-into-runtime|<tuple|3.1|?>>
-    <associate|sect-extrinsics|<tuple|3.2|?>>
-    <associate|sect-justified-block-header|<tuple|3.3.1.2|?>>
-    <associate|sect-loading-runtime-code|<tuple|3.1.1|?>>
-    <associate|sect-managing-multiple-states|<tuple|3.3.4|?>>
-    <associate|sect-runtime-return-value|<tuple|3.1.2.3|?>>
-    <associate|sect-runtime-send-args-to-runtime-enteries|<tuple|3.1.2.2|?>>
-    <associate|sect-state-replication|<tuple|3.3|?>>
-    <associate|tabl-digest-items|<tuple|3.2|?>>
-    <associate|tabl-inherent-data|<tuple|3.1|?>>
-    <associate|table-changes-trie-key-types|<tuple|3.3|?>>
+    <associate|defn-transaction-queue|<tuple|3.4|25>>
+    <associate|nota-call-into-runtime|<tuple|3.2|24>>
+    <associate|nota-runtime-code-at-state|<tuple|3.1|24>>
+    <associate|sect-block-body|<tuple|3.3.1.3|28>>
+    <associate|sect-block-format|<tuple|3.3.1|27>>
+    <associate|sect-block-submission|<tuple|3.3.2|28>>
+    <associate|sect-block-validation|<tuple|3.3.3|28>>
+    <associate|sect-changes-trie|<tuple|3.3.5|29>>
+    <associate|sect-entries-into-runtime|<tuple|3.1|23>>
+    <associate|sect-extrinsics|<tuple|3.2|24>>
+    <associate|sect-justified-block-header|<tuple|3.3.1.2|28>>
+    <associate|sect-loading-runtime-code|<tuple|3.1.1|23>>
+    <associate|sect-managing-multiple-states|<tuple|3.3.4|29>>
+    <associate|sect-runtime-return-value|<tuple|3.1.2.3|24>>
+    <associate|sect-runtime-send-args-to-runtime-enteries|<tuple|3.1.2.2|24>>
+    <associate|sect-state-replication|<tuple|3.3|26>>
+    <associate|tabl-digest-items|<tuple|3.2|27>>
+    <associate|tabl-inherent-data|<tuple|3.1|26>>
+    <associate|table-changes-trie-key-types|<tuple|3.3|29>>
   </collection>
 </references>
 
