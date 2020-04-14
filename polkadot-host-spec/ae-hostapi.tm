@@ -207,8 +207,7 @@
   <subsection|<verbatim|ext_storage_changes_root>><label|sect-ext-storage-changes-root>
 
   Commits all existing operations and gets the resulting change root as
-  described in section <reference|sect-changes-trie>. The parent hash is a
-  SCALE encoded change root.
+  described in section <reference|sect-changes-trie>.
 
   \;
 
@@ -251,7 +250,7 @@
   <\itemize>
     <item><strong|><verbatim|parent_hash>: a pointer-size as defined in
     Definition <reference|defn-runtime-pointer> indicating the SCALE encoded
-    block hash.
+    parent block hash.
 
     <item><verbatim|return>: a pointer-size as defined in Definition
     <reference|defn-runtime-pointer> indicating the SCALE encoded
