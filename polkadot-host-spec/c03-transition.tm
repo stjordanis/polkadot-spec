@@ -865,13 +865,15 @@
     </itemize-dot>
   </enumerate-numeric>
 
-  <subsubsection|Key to Child Changes Trie><label|sect-changes-trie-child-trie-pair>
+  <subsubsection|Key to Child Changes Trie
+  pairs><label|sect-changes-trie-child-trie-pair>
 
   The Polkadot Host generates a separate Changes Trie for each child storage,
   using the same behavior and implementation as describe in section
-  <reference|sect-changes-trie-extrinsics-pairs>. Its value is a SCALE
-  encoded byte array containing the Merkle root of the Child Changes Trie.
-  The key-value pair is defined as:
+  <reference|sect-changes-trie-extrinsics-pairs>. Additionally, the changed
+  child storage key gets inserted into the primary, non-Child Changes Trie
+  where its value is a SCALE encoded byte array containing the Merkle root of
+  the Child Changes Trie. The key-value pair is defined as:
 
   <\equation*>
     <around*|(|3,H<rsub|i><around*|(|B<rsub|i>|)>,K|)>\<rightarrow\>H<rsub|r><around*|(|<text|<name|Child-Changes-Trie>>|)>
