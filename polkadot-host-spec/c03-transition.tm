@@ -708,7 +708,7 @@
     between storage key and extrinsics>|<cell|<math|<around*|{|e<rsub|i>,\<ldots\>,e<rsub|n>|}>>>>|<row|<cell|>|<cell|<text-dots>
     where <math|e<rsub|i> refers to the >indice of the extrinsic within the
     block>|<cell|>>|<row|<cell|2>|<cell|Pair between storage key and block
-    numbers>|<cell|<math|<around*|{|H<rsub|i><around*|(|B<rsub|i>|)>,\<ldots\>,H<rsub|i><around*|(|B<rsub|n>|)>|}>>>>|<row|<cell|3>|<cell|Pair
+    numbers>|<cell|<math|<around*|{|H<rsub|i><around*|(|B<rsub|n>|)>,\<ldots\>,H<rsub|i><around*|(|B<rsub|m>|)>|}>>>>|<row|<cell|3>|<cell|Pair
     between storage key and Child Changes
     Trie>|<cell|Child-Changes-Trie-Root>>>>>
 
@@ -749,8 +749,7 @@
 
   This key-value pair stores changes which occure in an individual block. Its
   value is a SCALE encoded array containing the indices of the extrnsics that
-  caused any changes to the specified key and its key-value pair is defined
-  as:
+  caused any changes to the specified key. The key-value pair is defined as:
 
   <\equation*>
     <around*|(|1,H<rsub|i><around*|(|B<rsub|i>|)>,K|)>\<rightarrow\><around*|{|e<rsub|i>,\<ldots\>,e<rsub|n>|}>
@@ -769,11 +768,11 @@
 
   This key-value pair stores changes which occured in a certain range of
   blocks. Its value is a SCALE encoded array containing block numbers where
-  extrinsics caused any changes to the specified key and its key-value pair
-  is defined as:
+  extrinsics caused any changes to the specified key. The key-value pair is
+  defined as:
 
   <\equation*>
-    <around*|(|2,H<rsub|i><around*|(|B<rsub|i>|)>,K|)>\<rightarrow\><around*|{|H<rsub|i><around*|(|B<rsub|i>|)>,\<ldots\>,H<rsub|i><around*|(|B<rsub|n>|)>|}>
+    <around*|(|2,H<rsub|i><around*|(|B<rsub|i>|)>,K|)>\<rightarrow\><around*|{|H<rsub|i><around*|(|B<rsub|n>|)>,\<ldots\>,H<rsub|i><around*|(|B<rsub|m>|)>|}>
   </equation*>
 
   The block numbers are represented as unsigned 32-bit integers. The Polkadot
@@ -792,7 +791,7 @@
   </itemize-dot>
 
   For each level from 1 to <verbatim|levels>, the Polkadot Host creates those
-  pairs on every <verbatim|<math|<text|interval<rsup|level><verbatim|>>>>
+  pairs for on every <verbatim|<math|<text|interval<rsup|level><verbatim|>>>>-nth
   block, formally applied as:
 
   <\algorithm|<name|Key-To-Block-Pairs>(<math|B<rsub|i>>, interval, levels)>
@@ -815,6 +814,42 @@
     <math|H<rsub|i><around*|(|B<rsub|i>|)>-I<rsup|l>+1> to <math|H<rsub|i>>
     where any extrinsic changed the specified key.
   </itemize-dot>
+
+  For example, let's say <verbatim|interval> is set at <verbatim|4> and
+  <verbatim|levels> is set at <verbatim|3>. This means there are now three
+  levels which get generated at occurences:
+
+  <\enumerate-numeric>
+    <item><strong|Level 1> - Those pairs are generated at every
+    <math|<text|<strong|4<rsup|1>>>>-nth block, where the pair value contains
+    the block numbers of every block that changed the specified storage key.
+    This level only considers block numbers of the last four
+    (<math|4<rsup|1>>) blocks.
+
+    \;
+
+    Example: this level occurs at block 4, 8, 12, 16, 32, etc.
+
+    <item><strong|Level 2> - Those pairs are generated at every
+    <math|<text|<strong|4<rsup|2> >>>-nth block, where the pair value
+    contains the block numbers of every block that changed the specified
+    storage key. This level only considers block numbers of the last 16
+    (<math|4<rsup|2>>) blocks.
+
+    \;
+
+    Example: this level occurs at block 16, 32, 64, 128, 256, etc.
+
+    <item><strong|Level 3> - Those pairs are generated at every
+    <text|<math|<text|<strong|4<rsup|3>>>>>-nth block, where the pair value
+    contains the block numbers of every block that changed the specified
+    storage key. this level only considers block number of the last 64
+    (<math|4<rsup|3>>) blocks.
+
+    \;
+
+    Example: this level occurs at block 64, 128, 196, 256, 320, etc.
+  </enumerate-numeric>
 </body>
 
 <\initial>
