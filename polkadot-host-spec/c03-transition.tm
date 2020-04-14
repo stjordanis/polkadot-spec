@@ -678,11 +678,17 @@
   functionalities which allows identifying changes in the blockchain without
   requiring to search through the entire chain. The <strong|Changes Trie> is
   a radix-16 tree datastructure as defined in Definition
-  <reference|defn-radix-tree> and maintained by the Polkadot node. It stores
-  multiple kinds of storage changes made by every block. The primary method
-  of generating the Changes Trie is by calling the
-  <verbatim|ext_storage_changes_root> Host API as described in section
-  <reference|sect-ext-storage-changes-root>. In order to provide this API
+  <reference|defn-radix-tree> and maintained by the Polkadot Host. It stores
+  different types of storage changes made by every block.
+
+  \;
+
+  The primary method for generating the Changes Trie is provided to the
+  Runtime with the <verbatim|ext_storage_changes_root> Host API as described
+  in section <reference|sect-ext-storage-changes-root>. The Runtime calls
+  that function shortly before finalizing the block, the Polkadot Host must
+  then generate the Changes Trie based on the storage changes which occured
+  during block production or execution. In order to provide this API
   function, it is imperative that the Polkadot Host implements a mechanism to
   keep track of the changes created by individual blocks, as mentioned in
   section <reference|sect-state-storage>.
@@ -698,8 +704,8 @@
 
   where <math|K> is the changed storage key,
   <math|H<rsub|i><around*|(|B<rsub|i>|)>> refers to the block number at which
-  this key has been inserted (current block) into the Changes Trie and
-  <math|A<rsub|Type>> is a varying datatype as defined in Definition
+  this key is inserted into the Changes Trie and <math|A<rsub|Type>> is a
+  varying datatype as defined in Definition
   <reference|defn-varrying-data-type>. The type including its corresponding
   value is defined in table <reference|table-changes-trie-key-types>.<htab|5mm>
 
@@ -710,7 +716,7 @@
     block>|<cell|>>|<row|<cell|2>|<cell|Pair between storage key and block
     numbers>|<cell|<math|<around*|{|H<rsub|i><around*|(|B<rsub|n>|)>,\<ldots\>,H<rsub|i><around*|(|B<rsub|m>|)>|}>>>>|<row|<cell|3>|<cell|Pair
     between storage key and Child Changes
-    Trie>|<cell|Child-Changes-Trie-Root>>>>>
+    Trie>|<cell|<math|H<rsub|r><around*|(|<text|<name|Child-Changes-Trie>>|)>>>>>>>
 
     \;
   <|big-table>
@@ -727,16 +733,15 @@
   maintained database by the Polkadot Host. The Merkle proof of the Changes
   Trie must be inlcuded in the block digest as described in Definition
   <reference|defn-digest> and gets calculated as described in section
-  <reference|sect-merkl-proof>. The root calculation only applies to pairs
+  <reference|sect-merkl-proof>. The root calculation only considers pairs
   which were generated on the individual block and does not consider pairs
-  from previous blocks.
+  which were generated at previous blocks.
 
   \;
 
   <todo|This seperately maintained database by the Polkadot Host is intended
   to be used by \Pproof servers\Q, where its implementation and behavior has
-  not been fully implemented and specified yet. This is considered
-  future-reserved>
+  not been fully defined yet. This is considered future-reserved>
 
   \;
 
@@ -745,20 +750,22 @@
   different types of pairs get inserted into the same Changes Trie, therefore
   only one Changes Trie Root gets generated for each block.
 
-  <subsubsection|Key to extrinsics pairs>
+  <subsubsection|Key to extrinsics pairs><label|sect-changes-trie-extrinsics-pairs>
 
   This key-value pair stores changes which occure in an individual block. Its
   value is a SCALE encoded array containing the indices of the extrnsics that
-  caused any changes to the specified key. The key-value pair is defined as:
+  caused any changes to the specified key. The key-value pair is defined as
+  (clarified in section <reference|sect-changes-trie>):
 
   <\equation*>
     <around*|(|1,H<rsub|i><around*|(|B<rsub|i>|)>,K|)>\<rightarrow\><around*|{|e<rsub|i>,\<ldots\>,e<rsub|n>|}>
   </equation*>
 
   The indices are unsigned 32-bit integers and their values are based on the
-  order in which each extrnsic appears in the block (starting at 0). The
-  Polkadot Host generates those pairs for every changed key on each and every
-  block.
+  order in which each extrinsics appears in the block (indexing starts at 0).
+  The Polkadot Host generates those pairs for every changed key on each and
+  every block. Child storages have their own Changes Trie, as described in
+  section <reference|sect-changes-trie-child-trie-pair>.
 
   \;
 
@@ -769,7 +776,7 @@
   This key-value pair stores changes which occured in a certain range of
   blocks. Its value is a SCALE encoded array containing block numbers in
   which extrinsics caused any changes to the specified key. The key-value
-  pair is defined as:
+  pair is defined as (clarified in section <reference|sect-changes-trie>):
 
   <\equation*>
     <around*|(|2,H<rsub|i><around*|(|B<rsub|i>|)>,K|)>\<rightarrow\><around*|{|H<rsub|i><around*|(|B<rsub|n>|)>,\<ldots\>,H<rsub|i><around*|(|B<rsub|m>|)>|}>
@@ -777,7 +784,7 @@
 
   The block numbers are represented as unsigned 32-bit integers. There are
   multiple \Plevels\Q of those pairs, and the Polkadot Host does <strong|not>
-  generate those pairs on every block. The genesis states contains the key
+  generate those pairs on every block. The genesis state contains the key
   <verbatim|:changes_trie> where its unsigned 64-bit value represents two
   32-bit integers:
 
@@ -816,8 +823,8 @@
 
     <item><name|Insert-Blocks> - Inserts every block number within the range
     <math|H<rsub|i><around*|(|B<rsub|i>|)>-I<rsup|l>+1> to
-    <math|H<rsub|i><around*|(|B<rsub|i>|)>> where any extrinsic changed the
-    specified key.
+    <math|H<rsub|i><around*|(|B<rsub|i>|)>> in which any extrinsic changed
+    the specified key.
   </itemize-dot>
 
   \;
@@ -857,6 +864,21 @@
       <item>Example: this level occurs at block 64, 128, 196, 256, 320, etc.
     </itemize-dot>
   </enumerate-numeric>
+
+  <subsubsection|Key to Child Changes Trie><label|sect-changes-trie-child-trie-pair>
+
+  The Polkadot Host generates a separate Changes Trie for each child storage,
+  using the same behavior and implementation as describe in section
+  <reference|sect-changes-trie-extrinsics-pairs>. Its value is a SCALE
+  encoded byte array containing the Merkle root of the Child Changes Trie.
+  The key-value pair is defined as:
+
+  <\equation*>
+    <around*|(|3,H<rsub|i><around*|(|B<rsub|i>|)>,K|)>\<rightarrow\>H<rsub|r><around*|(|<text|<name|Child-Changes-Trie>>|)>
+  </equation*>
+
+  The Polkadot Host creates those pairs for every changes child key for each
+  and every block.
 </body>
 
 <\initial>
@@ -902,6 +924,7 @@
     <associate|auto-3|<tuple|3.1.1|23>>
     <associate|auto-30|<tuple|3.3.5.1|30>>
     <associate|auto-31|<tuple|3.3.5.2|30>>
+    <associate|auto-32|<tuple|3.3.5.3|31>>
     <associate|auto-4|<tuple|3.1.2|24>>
     <associate|auto-5|<tuple|3.1.2.1|24>>
     <associate|auto-6|<tuple|3.1.2.2|24>>
@@ -927,6 +950,8 @@
     <associate|sect-block-submission|<tuple|3.3.2|28>>
     <associate|sect-block-validation|<tuple|3.3.3|28>>
     <associate|sect-changes-trie|<tuple|3.3.5|29>>
+    <associate|sect-changes-trie-child-trie-pair|<tuple|3.3.5.3|?>>
+    <associate|sect-changes-trie-extrinsics-pairs|<tuple|3.3.5.1|?>>
     <associate|sect-entries-into-runtime|<tuple|3.1|23>>
     <associate|sect-extrinsics|<tuple|3.2|24>>
     <associate|sect-justified-block-header|<tuple|3.3.1.2|28>>
@@ -1058,6 +1083,10 @@
       <with|par-left|<quote|2tab>|3.3.5.2<space|2spc>Key to block pairs
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-31>>
+
+      <with|par-left|<quote|2tab>|3.3.5.3<space|2spc>Key to Child Changes
+      Trie <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-32>>
     </associate>
   </collection>
 </auxiliary>
