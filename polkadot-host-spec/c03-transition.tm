@@ -711,12 +711,13 @@
 
   <\big-table>
     <tabular|<tformat|<cwith|2|2|1|-1|cell-bborder|0ln>|<cwith|4|4|1|-1|cell-tborder|1ln>|<cwith|4|4|1|-1|cell-bborder|0ln>|<cwith|5|5|1|-1|cell-tborder|1ln>|<cwith|5|5|1|-1|cell-bborder|1ln>|<cwith|5|5|1|1|cell-lborder|0ln>|<cwith|5|5|3|3|cell-rborder|0ln>|<cwith|1|1|1|-1|cell-tborder|1ln>|<cwith|1|1|1|-1|cell-bborder|1ln>|<cwith|2|2|1|-1|cell-tborder|1ln>|<cwith|1|1|1|1|cell-lborder|0ln>|<cwith|1|1|3|3|cell-rborder|0ln>|<table|<row|<cell|<strong|Type>>|<cell|<strong|Description>>|<cell|<strong|Value>>>|<row|<cell|1>|<cell|Pair
-    between storage key and extrinsics>|<cell|<math|<around*|{|e<rsub|i>,\<ldots\>,e<rsub|n>|}>>>>|<row|<cell|>|<cell|<text-dots>
+    between storage key and extrinsics (section
+    <reference|sect-changes-trie-extrinsics-pairs>)>|<cell|<math|<around*|{|e<rsub|i>,\<ldots\>,e<rsub|n>|}>>>>|<row|<cell|>|<cell|<text-dots>
     where <math|e<rsub|i> refers to the >indice of the extrinsic within the
     block>|<cell|>>|<row|<cell|2>|<cell|Pair between storage key and block
-    numbers>|<cell|<math|<around*|{|H<rsub|i><around*|(|B<rsub|n>|)>,\<ldots\>,H<rsub|i><around*|(|B<rsub|m>|)>|}>>>>|<row|<cell|3>|<cell|Pair
-    between storage key and Child Changes
-    Trie>|<cell|<math|H<rsub|r><around*|(|<text|<name|Child-Changes-Trie>>|)>>>>>>>
+    numbers (section <reference|sect-changes-trie-block-pairs>)>|<cell|<math|<around*|{|H<rsub|i><around*|(|B<rsub|n>|)>,\<ldots\>,H<rsub|i><around*|(|B<rsub|m>|)>|}>>>>|<row|<cell|3>|<cell|Pair
+    between storage key and Child Changes Trie (section
+    <reference|sect-changes-trie-child-trie-pair>)>|<cell|<math|H<rsub|r><around*|(|<text|<name|Child-Changes-Trie>>|)>>>>>>>
 
     \;
   <|big-table>
@@ -731,7 +732,7 @@
 
   The Changes Trie itself is not part of the block, but a separately
   maintained database by the Polkadot Host. The Merkle proof of the Changes
-  Trie must be inlcuded in the block digest as described in Definition
+  Trie must be included in the block digest as described in Definition
   <reference|defn-digest> and gets calculated as described in section
   <reference|sect-merkl-proof>. The root calculation only considers pairs
   which were generated on the individual block and does not consider pairs
@@ -753,9 +754,9 @@
   <subsubsection|Key to extrinsics pairs><label|sect-changes-trie-extrinsics-pairs>
 
   This key-value pair stores changes which occure in an individual block. Its
-  value is a SCALE encoded array containing the indices of the extrnsics that
-  caused any changes to the specified key. The key-value pair is defined as
-  (clarified in section <reference|sect-changes-trie>):
+  value is a SCALE encoded array containing the indices of the extrinsics
+  that caused any changes to the specified key. The key-value pair is defined
+  as (clarified in section <reference|sect-changes-trie>):
 
   <\equation*>
     <around*|(|1,H<rsub|i><around*|(|B<rsub|i>|)>,K|)>\<rightarrow\><around*|{|e<rsub|i>,\<ldots\>,e<rsub|n>|}>
@@ -771,7 +772,7 @@
 
   <todo|clarify special key value of 0xffffffff>
 
-  <subsubsection|Key to block pairs>
+  <subsubsection|Key to block pairs><label|sect-changes-trie-block-pairs>
 
   This key-value pair stores changes which occured in a certain range of
   blocks. Its value is a SCALE encoded array containing block numbers in
@@ -785,7 +786,7 @@
   The block numbers are represented as unsigned 32-bit integers. There are
   multiple \Plevels\Q of those pairs, and the Polkadot Host does <strong|not>
   generate those pairs on every block. The genesis state contains the key
-  <verbatim|:changes_trie> where its unsigned 64-bit value represents two
+  <verbatim|:changes_trie> where its unsigned 64-bit value is a tuple of two
   32-bit integers:
 
   <\itemize-dot>
@@ -941,9 +942,6 @@
     <associate|defn-digest|<tuple|3.7|27>>
     <associate|defn-inherent-data|<tuple|3.5|26>>
     <associate|defn-set-state-at|<tuple|3.10|29>>
-    <associate|defn-storage-key-to-blocks|<tuple|3.11|?>>
-    <associate|defn-storage-key-to-child-tries|<tuple|3.11|?>>
-    <associate|defn-storage-key-to-extrinsics|<tuple|3.11|?>>
     <associate|defn-transaction-queue|<tuple|3.4|25>>
     <associate|nota-call-into-runtime|<tuple|3.2|24>>
     <associate|nota-runtime-code-at-state|<tuple|3.1|24>>
@@ -952,6 +950,7 @@
     <associate|sect-block-submission|<tuple|3.3.2|28>>
     <associate|sect-block-validation|<tuple|3.3.3|28>>
     <associate|sect-changes-trie|<tuple|3.3.5|29>>
+    <associate|sect-changes-trie-block-pairs|<tuple|3.3.5.2|?>>
     <associate|sect-changes-trie-child-trie-pair|<tuple|3.3.5.3|?>>
     <associate|sect-changes-trie-extrinsics-pairs|<tuple|3.3.5.1|?>>
     <associate|sect-entries-into-runtime|<tuple|3.1|23>>
@@ -1087,7 +1086,7 @@
       <no-break><pageref|auto-31>>
 
       <with|par-left|<quote|2tab>|3.3.5.3<space|2spc>Key to Child Changes
-      Trie <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      Trie pairs <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-32>>
     </associate>
   </collection>
