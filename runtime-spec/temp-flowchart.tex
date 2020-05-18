@@ -42,9 +42,9 @@ split2 --> "Every V decides whether to check this block?HOW is charted somewhere
 --> [Yes] "The validator acquires the block"
 --> "The validators validates the block and produces an attestation"
 
---> "Attestations and reports are gossiped and go onto the relay chain" as step3
-if "Did any validator say the block is invalid?" then
-    --> [Yes] "Every validator acquires and checks the block"
+-right-> "Attestations and reports are gossiped and go onto the relay chain" as step3
+-right-> if "Did any validator say the block is invalid?" then
+    -right-> [Yes] "Every validator acquires and checks the block"
     if "Do we decide that the block is invalid or valid? Slash the losing side if unambiguous" then
         --> [Valid] "We think the block is correct and can continue with GRANDPA" as inner
     else
