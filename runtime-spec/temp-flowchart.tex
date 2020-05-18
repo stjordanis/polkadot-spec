@@ -38,15 +38,11 @@ endif
 START --> "Full nodes of the parachain execute the block if they have it..." as step
 split2 -right-> step
 
-split2 --> if "Every V decides whether to check this block?HOW is charted somewhere else" then as temp
-    --> [Yes] "The validator acquires the block"
-endif
+split2 --> "Every V decides whether to check this block?HOW is charted somewhere else" as temp
+--> [Yes] "The validator acquires the block"
 --> "The validators validates the block and produces an attestation"
 
 --> "Attestations and reports are gossiped and go onto the relay chain" as step3
-step --> step3
-step3 --> temp
-
 if "Did any validator say the block is invalid?" then
     --> [Yes] "Every validator acquires and checks the block"
     if "Do we decide that the block is invalid or valid? Slash the losing side if unambiguous" then
@@ -61,6 +57,9 @@ else
         --> [No] step3
     endif
 endif
+
+step --> step3
+step3 --> temp
 
 @enduml
 \end{plantuml}
