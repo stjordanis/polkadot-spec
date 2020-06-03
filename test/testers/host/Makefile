@@ -3,7 +3,7 @@
 all: genesis.json genesis.yaml
 
 genesis.json:
-	cargo run --release > $@
+	cargo -Zfeatures=build_dep,compare run --release > $@
 
 genesis.yaml: genesis.json
 	yq -y < $< '.genesis.raw.top | { keys: keys_unsorted | map(.[2:]), values: map(.[2:]) }' > $@

@@ -29,8 +29,9 @@ sr-primitives = { git = "https://github.com/paritytech/substrate", rev = "c37bb0
 client = { package = "substrate-client", git = "https://github.com/paritytech/substrate", rev = "c37bb08", default_features = false }
 #offchain-primitives = { package = "substrate-offchain-primitives", git = "https://github.com/paritytech/substrate", rev = "c37bb08", default-features = false }
 
+# TODO: Check if we need -Zfeatures=build_dep cargo flag
 [build-dependencies]
-wasm-builder-runner = { package = "substrate-wasm-builder-runner", version = "1.0.4" }
+wasm-builder= { package = "substrate-wasm-builder", version = "1.0.8" }
 
 [features]
 default = ["std"]

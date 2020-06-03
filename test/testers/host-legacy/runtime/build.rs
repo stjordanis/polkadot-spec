@@ -14,14 +14,31 @@
 // You should have received a copy of the GNU General Public License
 // along with Substrate.  If not, see <http://www.gnu.org/licenses/>.
 
-use wasm_builder_runner::{build_current_project_with_rustflags, WasmBuilderSource};
+use std::{env, path::PathBuf};
 
+use wasm_builder::build_project_with_default_rustflags;
+
+/// Returns the manifest dir from the `CARGO_MANIFEST_DIR` env.
+fn get_manifest_dir() -> PathBuf {
+	env::var("CARGO_MANIFEST_DIR")
+		.expect("`CARGO_MANIFEST_DIR` is always set by cargo; qed")
+		.into()
+}
+
+/// Returns the output dir from `OUT_DIR` env. 
+fn get_output_dir() -> PathBuf {
+	env::var("OUT_DIR")
+		.expect("`OUT_DIR` is always set by cargo; qed")
+		.into()
+}
+
+/// Build wasm binary and export path to wasm_binary.rs
 fn main() {
-	build_current_project_with_rustflags(
-		"wasm_binary.rs",
-		WasmBuilderSource::Crates("1.0.8"),
-		// This instructs LLD to export __heap_base as a global variable, which is used by the
-		// external memory allocator.
+	build_project_with_default_rustflags(
+		get_output_dir().join("wasm_binary.rs").to_str().expect("Cargo uses valid paths; qed"),
+		get_manifest_dir().join("Cargo.toml").to_str().expect("Cargo uses valid paths; qed"),
+		// Instruct linker to expoert __heap_base as a global variable, which
+		// is used by the allocator.
 		"-Clink-arg=--export=__heap_base",
 	);
 }
