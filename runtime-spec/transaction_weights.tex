@@ -83,23 +83,17 @@ for each transaction at about 1'500'000.
 Do note that the smallest, non-zero weight in Polkadot is set at 10'000.
 
 \section{Runtime Primitives}
-The Runtime functions must be studied in order to determine which parts of the code will excessively
-increase execution time. Potential indicators like loops, IO operations and data manipulation must
-be considered. Based on those observations, Weights should be applied on operations
-that could have heavy implications on those design choices. The final assigned Weights are calculated
-by benchmarking the Runtime functions, which is described in section \ref{sect:benchmarking}.
+Depending on the Runtime function some parts of the code will excessively increase execution time. Potential indicators that impact the execution time are for example loops, I/O operations and data manipulation. Transaction weights should take into consideration operations that could have heavy implications on those design choices (Fatemeh? This is confusing.). The final assigned Weights are calculated by benchmarking the Runtime functions, which is described in Section \ref{sect:benchmarking}.
 \newline
 
 Section \ref{sect:examples-runtime-analysis} walks through two practical examples of Runtime function
-analysis.
-Not every possible outcome can be caused with input parameters to the Runtime function.
-In some circumstances, preliminary work regarding
-storage is required before a specific benchmark can be reliably measured.
+analysis. Not every possible outcome (Fatemeh: outcome for what? Be more precise.) can be caused with input parameters to the Runtime function.
+In some circumstances, preliminary work regarding storage is required before a specific benchmark can be reliably measured.
 Two of such examples are described in section \ref{sect:examples-preliminary-work}.
 
 \subsection{Primitive Types}\label{sect:primitive-types}
-The Runtime reuses components/primitives to interact with the state storage. The behavior and
-the execution cost of those primitives can be studied and a Weight should be applied for each use
+The Runtime reuses components/primitives to interact with the state storage. The behaviour and
+the execution cost of those primitives can be studied (Fatemeh: studied means what?) and a Weight should be applied for each use (Fatemeh: what is a use?)
 within the Runtime code.
 \newline
 
@@ -111,7 +105,7 @@ context:
   \newline\newline
   The final key-value pair is stored under the key:\newline
   \verb|hash(module_prefix) + hash(storage_prefix)|.
-  \item \textbf{Map}: Operations on mulitple values, datasets, where each entry has its
+  \item \textbf{Map}: Operations on multiple values, datasets, where each entry has its
   corresponding, unique key.
   \newline\newline
   The final key-value pair is stored under the key:\newline
