@@ -97,7 +97,7 @@ the execution cost of those primitives can be studied (Fatemeh: studied means wh
 within the Runtime code.
 \newline
 
-For storage, Polkadot uses three different types of storage types across its modules, depending on the
+For storage, Polkadot uses three storage types across its modules, depending on the
 context:
 
 \begin{itemize}
@@ -121,18 +121,18 @@ context:
   \end{verbatim}
 \end{itemize}
 
-Which type to use depends on the functionality of the Runtime module (or its sub-processes, rather).
+Which storage type to use depends on the functionality of the Runtime module (or its sub-processes, rather) (Fatemeh: What does this mean?).
 In some cases only a single value is required. In others, multiple values need to be operated on.
 \newline
 
-Those lower level types get abstracted over in each individual Runtime module using the \verb|decl_storage!|
-macro. Therefore, each module specifies its own types that are used as input and output values.
+Those lower level (Fatemeh: means which one?) types get abstracted over in each individual Runtime module using the \verb|decl_storage!|
+macro. Therefore, each module specifies its own storage types that are used as input and output values.
 The abstractions do give indicators on what operations must be closely observed and where potential
 performance penalties and attack vectors are possible.
 
 \subsubsection{Considerations}\label{sect:primitive-types-considerations}
 
-The storage layout is mostly the same for every primitive type, primarily differentiated
+The storage layout is mostly the same for every primitive type (Fatemeh: What are these types?), primarily differentiated
 by using special prefixes for the storage key. Big differences arise on how the primitive
 types are used in the Runtime function, on whether single values are operated on or entire
 datasets. Single value operations are generally quite cheap and its execution time does
@@ -157,9 +157,8 @@ Indicators for performance penalties:
   A base Weight is appropriate in this case.
   \item \textbf{Adjustable iterations and datasets} -
   If the amount of iterations or datasets depend on the input parameters of the caller or
-  specific entries in storage,
-  then a certain Weight should be applied for each (additional) iteration or item.
-  The Runtime defines the maximum value for such cases. If it doesn't, it unconditionally has to
+  specific entries in storage, then a certain Weight should be applied for each (additional) iteration or item.
+  The Runtime defines the maximum value for such cases. If it doesn't, it unconditionally has to (Fatemeh: ??)
   and the Runtime module must be adjusted.
   \newline\newline
   When selecting parameters
@@ -170,16 +169,18 @@ Indicators for performance penalties:
   Depending on the data type, it can be appropriate to add additional Weights based on certain properties,
   such as data size, assuming the data type allows varying sizes.
   The Runtime must define limits on those properties. If it doesn't, it unconditionally
-  has to and the Runtime module must be adjusted.
+  has to (??) and the Runtime module must be adjusted (??).
   \newline\newline
   When selecting parameters for benchmarking, the benchmarks should range from the minimum values to the
-  maximum value, as described in paragraph \ref{para:max-value}.
+  maximum value, as described in paragraph \ref{para:max-value}. (Fatemeh: Is this necessary? Not obvious?)
 \end{itemize}
 
-\label{para:max-value} What the maximum value should be really depends on the functionality that the Runtime function
+\label{para:max-value}  (Fatemeh: What is this label?)
+
+What the maximum value should be really depends on the functionality that the Runtime function
 is trying to provide. If the choice for that value is not obvious, then it's advised to run
 benchmarks on a big range of values and pick a conservative value below the \verb|targeted time per block|
-limit as described in section \ref{sec:limitations}.
+limit as described in Section \ref{sec:limitations}.
 
 \section{Benchmarking}\label{sect:benchmarking}
 Assigning weights based on theoretical performance can be
@@ -190,7 +191,7 @@ collection of input parameters.
 \newline
 
 In order to select useful parameters, the Runtime functions have to be analysed to fully
-understand which behaviors or conditions can result in expensive execution times,
+understand which behaviours or conditions can result in expensive execution times,
 which is described closer in section \ref{sect:primitive-types}.
 
 \subsection{Parameters}
@@ -198,11 +199,11 @@ The inputs parameters highly vary depending on the Runtime function and must the
 be carefully selected. The benchmarks should use input parameters which will most likely be
 used in regular cases, as intended by the authors, but must also consider worst case
 scenarios and inputs which might decelerate or heavily impact performance of the function.
-The input parameters should be randomized in order to cause various effects in behaviors
+The input parameters should be randomised (Fatemeh: how?) in order to cause various effects in behaviours
 on certain values, such as memory relocations and other outcomes that can impact performance.
 \newline
 
-It's not possible to benchmark every single value. However, one should select a range
+It's not possible to benchmark every single value (?). However, one should select a range
 of inputs to benchmark, spanning from the minimum value
 to the maximum value which will most likely exceed the expected usage of that function.
 This is described in more detail in section \ref{sect:primitive-types-considerations}.
@@ -212,12 +213,12 @@ The benchmarks should run individual executions/iterations within that range, wh
 should give insight on the execution time and resource cost. Selecting imprecise parameters
 or too extreme ranges might indicate an inaccurate result of the function as it will be used in production.
 Therefore, when a range of input parameters gets benchmarked, the result of each individual parameter
-should be recorded and ideally visualized. The author should then decide on the most probable average
+should be recorded and ideally visualised. The author should then decide on the most probable average
 execution time, basing that decision on the limitations of the Runtime and expected usage of the network.
 \newline
 
 Additionally, given the distinction theoretical and practical usage, the author reserves the right
-to make adjustments to the input parameters and assigned weights according to observed behavior
+to make adjustments to the input parameters and assigned weights according to observed behaviour
 of the actual, real-world network.
 
 \subsection{Blockchain State}
@@ -666,6 +667,6 @@ next\ weight &=& weight \times (1 + (v \times diff) + (v \times diff)^2 / 2)\\
 \end{eqnarray*}
 
 Polkadot defines the \verb|target_weight| as 0.25 (25\%). More information about this algorithm is described
-in the Web3 Foundation research paper: \url{https://research.web3.foundation/en/latest/polkadot/Token%20Economics.html#relay-chain-transaction-fees-and-per-block-transaction-limits}.
+in the Web3 Foundation research paper: \url{https://research.web3.foundation/en/latest/polkadot/Token\%20Economics.html#relay-chain-transaction-fees-and-per-block-transaction-limits}.
 
 \end{document}
