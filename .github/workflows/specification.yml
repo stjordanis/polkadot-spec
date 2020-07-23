@@ -59,6 +59,11 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 2
+      if: github.event_name == 'push'
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+      if: github.event_name == 'pull_request'
     - name: Install dependencies
       run: |
         sudo apt-key add .github/apt-texmacs.asc
